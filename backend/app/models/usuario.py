@@ -37,6 +37,12 @@ class Usuario(Base):
         nullable=False,
     )
 
+    dni: Mapped[str] = mapped_column(
+        String(20),
+        unique=True,
+        nullable=False,
+    )
+
     activo: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
