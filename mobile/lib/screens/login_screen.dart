@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,7 +14,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  final AuthService _authService = AuthService();
+
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   static const Color _lime = Color(0xFFDFFF00);
 
@@ -24,20 +28,56 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _iniciarSesion() {
+  Future<void> _iniciarSesion() async {
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Formulario válido. Próximo paso: conectar con el backend.',
-        ),
-      ),
-    );
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _authService.login(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      // Temporalmente, hasta que implementemos Home.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('¡Inicio de sesión exitoso!')),
+      );
+    } on AuthException catch (e) {
+      if (!mounted) return;
+
+      String mensaje;
+
+      switch (e.type) {
+        case AuthErrorType.invalidCredentials:
+          mensaje = 'No se pudo iniciar sesión';
+          break;
+        case AuthErrorType.connectivity:
+          mensaje = 'No hay conexión. Verificá tu red.';
+          break;
+        case AuthErrorType.server:
+          mensaje = 'Error del servidor. Intentá más tarde.';
+          break;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(mensaje)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   InputDecoration _decoracionCampo({
@@ -220,22 +260,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(
                           height: 54,
                           child: ElevatedButton(
-                            onPressed: _iniciarSesion,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _lime,
-                              foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text(
-                              'INICIAR SESIÓN',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                            ),
+                            onPressed: _isLoading ? null : _iniciarSesion,
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                : const Text(
+                                    'INICIAR SESIÓN',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
                           ),
                         ),
                       ],
