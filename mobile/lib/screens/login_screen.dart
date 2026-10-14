@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -65,6 +66,12 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
         case AuthErrorType.server:
           mensaje = 'Error del servidor. Intentá más tarde.';
+          break;
+        case AuthErrorType.registrationFailed:
+          mensaje = 'No se pudo completar el registro';
+          break;
+        case AuthErrorType.validation:
+          mensaje = 'Revisá los datos ingresados';
           break;
       }
 
@@ -276,6 +283,40 @@ class _LoginScreenState extends State<LoginScreen> {
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1,
+                                    ),
+                                  ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        Center(
+                          child: TextButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => const RegisterScreen(),
+                                      ),
+                                    );
+                                  },
+                            child: const Text.rich(
+                              TextSpan(
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                                children: [
+                                  TextSpan(text: '¿No tenés cuenta? '),
+                                  TextSpan(
+                                    text: 'Crear cuenta',
+                                    style: TextStyle(
+                                      color: Color(0xFFD7FF00),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                                     ),
                                   ),
                           ),
