@@ -15,8 +15,8 @@ app.include_router(auth_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:51337",
-        "http://127.0.0.1:51337",
+        "http://localhost:5000",
+        "http://127.0.0.1:5000",
     ],
     allow_credentials=False,
     allow_methods=["*"],
