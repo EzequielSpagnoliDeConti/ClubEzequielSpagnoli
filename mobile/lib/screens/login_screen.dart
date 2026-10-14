@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -48,9 +49,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      // Temporalmente, hasta que implementemos Home.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('¡Inicio de sesión exitoso!')),
+      final usuario = await _authService.getCurrentUser();
+
+      final nombre = usuario['nombre']?.toString().trim() ?? '';
+      final apellido = usuario['apellido']?.toString().trim() ?? '';
+
+      final nombreCompleto = [
+        nombre,
+        apellido,
+      ].where((parte) => parte.isNotEmpty).join(' ');
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => HomeScreen(
+            userName: nombreCompleto.isEmpty ? 'Usuario' : nombreCompleto,
+          ),
+        ),
       );
     } on AuthException catch (e) {
       if (!mounted) return;
@@ -317,8 +333,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 ],
-                                    ),
-                                  ),
+                              ),
+                            ),
                           ),
                         ),
                       ],
