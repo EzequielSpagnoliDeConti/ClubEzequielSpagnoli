@@ -140,6 +140,53 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> getCurrentUser() async {
+    final token = await getToken();
+
+    if (token == null || token.isEmpty) {
+      throw const AuthException(AuthErrorType.invalidCredentials);
+    }
+
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$_baseUrl/auth/me'),
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        await logout();
+        throw const AuthException(AuthErrorType.invalidCredentials);
+      }
+
+      if (response.statusCode != 200) {
+        throw const AuthException(AuthErrorType.server);
+      }
+
+      final data = jsonDecode(response.body);
+
+      if (data is! Map<String, dynamic>) {
+        throw const AuthException(AuthErrorType.server);
+      }
+
+      return data;
+    } on AuthException {
+      rethrow;
+    } on SocketException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on TimeoutException {
+      throw const AuthException(AuthErrorType.server);
+    } on http.ClientException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on FormatException {
+      throw const AuthException(AuthErrorType.server);
+    }
+  }
+
   Future<String?> getToken() {
     return _storage.read(key: _tokenKey);
   }
