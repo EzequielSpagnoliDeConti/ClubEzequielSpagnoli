@@ -109,3 +109,39 @@ def obtener_mi_perfil(
     usuario: Usuario = Depends(obtener_usuario_actual),
 ):
     return usuario
+
+
+@router.put("/me", response_model=UsuarioActualRespuesta)
+def actualizar_mi_perfil(
+    datos: ActualizarPerfilUsuario,
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db),
+):
+    dni_existente = db.scalar(
+        select(Usuario).where(
+            Usuario.dni == datos.dni,
+            Usuario.id != usuario.id,
+        )
+    )
+    if dni_existente:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El DNI ya está registrado.",
+        )
+
+    usuario.nombre = datos.nombre
+    usuario.apellido = datos.apellido
+    usuario.dni = datos.dni
+    usuario.fecha_nacimiento = datos.fecha_nacimiento
+    usuario.updated_at = datetime.now()
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Se produjo un conflicto al actualizar el perfil.",
+        )
+
+    return usuario
