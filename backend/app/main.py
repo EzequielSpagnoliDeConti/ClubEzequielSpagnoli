@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.auth.router import router as auth_router
 from app.espacios_deportivos.router import router as espacios_deportivos_router
+from app.reservas.router import router as reservas_router
 from app.sedes.router import router as sedes_router
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,6 +15,7 @@ app = FastAPI(
 app.include_router(auth_router)
 app.include_router(sedes_router)
 app.include_router(espacios_deportivos_router)
+app.include_router(reservas_router)
 
 
 app.add_middleware(
