@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
+import 'login_screen.dart';
+import 'profile_screen.dart';
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.userName});
+  const HomeScreen({
+    super.key,
+    required this.userName,
+    required this.userProfile,
+  });
 
   final String userName;
+  final Map<String, dynamic> userProfile;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -13,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color _lime = Color(0xFFD7FF00);
   static const Color _surface = Color(0xFF1B1B1E);
   static const Color _muted = Color(0xFF8A8A90);
+  static const Color _danger = Color(0xFFFF5B5B);
 
   static const List<String> _categories = [
     'Todos',
@@ -48,9 +58,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _selectedCategory = 'Todos';
   int _selectedTab = 0;
+  late Map<String, dynamic> _userProfile;
+  final AuthService _authService = AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    _userProfile = Map<String, dynamic>.from(widget.userProfile);
+  }
+
+  String get _displayName {
+    final nombre = _userProfile['nombre']?.toString().trim() ?? '';
+    final apellido = _userProfile['apellido']?.toString().trim() ?? '';
+    final fullName = [
+      nombre,
+      apellido,
+    ].where((part) => part.isNotEmpty).join(' ');
+    return fullName.isEmpty ? widget.userName : fullName;
+  }
 
   String get _initials {
-    final names = widget.userName.trim().split(RegExp(r'\s+'));
+    final names = _displayName.trim().split(RegExp(r'\s+'));
     if (names.isEmpty || names.first.isEmpty) return 'U';
     return names.length > 1
         ? '${names.first[0]}${names.last[0]}'.toUpperCase()
@@ -74,6 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _selectedTab == 0
                   ? _buildHomeContent()
+                  : _selectedTab == 3
+                  ? _buildProfileContent()
                   : _buildComingSoon(),
             ),
             _buildBottomNavigation(),
@@ -163,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  widget.userName,
+                  _displayName,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
@@ -592,6 +622,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Widget _buildProfileContent() {
+    return ProfileScreen(
+      profile: _userProfile,
+      onProfileUpdated: (profile) {
+        setState(() => _userProfile = profile);
+      },
+      onLoggedOut: _redirectToLogin,
+    );
+  }
+
+  void _redirectToLogin() {
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
+  }
+
   Future<void> _showMiniProfileMenu(BuildContext buttonContext) async {
     final button = buttonContext.findRenderObject()! as RenderBox;
     final overlay =
@@ -757,6 +807,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _formatBirthDate(Object? value) {
+    final date = DateTime.tryParse(value?.toString() ?? '');
+    if (date == null) return '—';
+    return '${date.year.toString().padLeft(4, '0')}-'
+        '${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
+  }
+
   Widget _buildBottomNavigation() {
     const labels = ['INICIO', 'SEDES', 'RESERVAS', 'PERFIL'];
     const icons = [
@@ -841,6 +899,38 @@ class _Venue {
   final List<String> categories;
   final String rating;
   final Color color;
+}
+
+enum _MiniProfileAction { profile, reservations, logout }
+
+class _MiniProfileMenuAction extends StatelessWidget {
+  const _MiniProfileMenuAction({
+    required this.icon,
+    required this.label,
+    this.color = Colors.white,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: color.withValues(alpha: 0.8), size: 16),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _PitchPainter extends CustomPainter {
