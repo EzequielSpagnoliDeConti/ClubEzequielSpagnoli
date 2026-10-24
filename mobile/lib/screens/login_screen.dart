@@ -65,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(
           builder: (_) => HomeScreen(
             userName: nombreCompleto.isEmpty ? 'Usuario' : nombreCompleto,
+            userProfile: usuario,
           ),
         ),
       );
@@ -75,7 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       switch (e.type) {
         case AuthErrorType.invalidCredentials:
-          mensaje = 'No se pudo iniciar sesión';
+          mensaje =
+              'No se pudo iniciar sesión. Verificá el email, la contraseña '
+              'y que la cuenta siga activa.';
           break;
         case AuthErrorType.connectivity:
           mensaje = 'No hay conexión. Verificá tu red.';
@@ -88,6 +91,17 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
         case AuthErrorType.validation:
           mensaje = 'Revisá los datos ingresados';
+          break;
+        case AuthErrorType.sessionExpired:
+          mensaje =
+              'El login fue aceptado, pero no se pudo validar la sesión. '
+              'Intentá nuevamente.';
+          break;
+        case AuthErrorType.profileUpdateFailed:
+          mensaje = 'No se pudo actualizar el perfil';
+          break;
+        case AuthErrorType.accountDeactivationFailed:
+          mensaje = 'No se pudo dar de baja la cuenta';
           break;
       }
 
