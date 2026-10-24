@@ -33,4 +33,14 @@ class UsuarioActualRespuesta(BaseModel):
     id: int
     nombre: str
     apellido: str
+    dni: str
+    fecha_nacimiento: date
     email: EmailStr
+    activo: bool
+
+
+class ActualizarPerfilUsuario(BaseModel):
+    nombre: str = Field(min_length=1, max_length=100)
+    apellido: str = Field(min_length=1, max_length=100)
+    dni: str = Field(min_length=1, max_length=20)
+    fecha_nacimiento: date
