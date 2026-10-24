@@ -27,6 +27,27 @@ def listar_espacios_deportivos(db: Session = Depends(get_db)):
     ).all()
 
 
+@router.get(
+    "/sede/{sede_id}",
+    response_model=list[EspacioDeportivoRespuesta],
+)
+def listar_espacios_deportivos_por_sede(
+    sede_id: int,
+    db: Session = Depends(get_db),
+):
+    if db.get(Sede, sede_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sede no encontrada.",
+        )
+
+    return db.scalars(
+        select(EspacioDeportivo)
+        .where(EspacioDeportivo.sede_id == sede_id)
+        .order_by(EspacioDeportivo.id)
+    ).all()
+
+
 @router.post(
     "",
     response_model=EspacioDeportivoRespuesta,
