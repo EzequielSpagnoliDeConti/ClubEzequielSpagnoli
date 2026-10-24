@@ -11,6 +11,9 @@ enum AuthErrorType {
   server,
   registrationFailed,
   validation,
+  sessionExpired,
+  profileUpdateFailed,
+  accountDeactivationFailed,
 }
 
 class AuthException implements Exception {
@@ -160,6 +163,33 @@ class AuthService {
 
       if (response.statusCode == 401 || response.statusCode == 403) {
         await logout();
+        throw const AuthException(AuthErrorType.sessionExpired);
+      }
+
+      if (response.statusCode != 200) {
+        throw const AuthException(AuthErrorType.server);
+      }
+
+      final data = jsonDecode(response.body);
+
+      if (data is! Map<String, dynamic>) {
+        throw const AuthException(AuthErrorType.server);
+      }
+
+      return data;
+    } on AuthException {
+      rethrow;
+    } on SocketException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on TimeoutException {
+      throw const AuthException(AuthErrorType.server);
+    } on http.ClientException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on FormatException {
+      throw const AuthException(AuthErrorType.server);
+    }
+  }
+
         throw const AuthException(AuthErrorType.invalidCredentials);
       }
 
