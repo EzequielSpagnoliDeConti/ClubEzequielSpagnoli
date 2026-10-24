@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 44),
                 const Text(
-                  'CLUB NOEMI ACOSTA',
+                  'CLUB EZEQUIEL SPAGNOLI DE CONTI',
                   style: TextStyle(
                     color: _lime,
                     fontSize: 9,
