@@ -132,18 +132,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           _showMessage('No tenés notificaciones nuevas'),
                     ),
                     const SizedBox(width: 10),
-                    InkWell(
-                      onTap: () => setState(() => _selectedTab = 3),
-                      borderRadius: BorderRadius.circular(24),
-                      child: CircleAvatar(
-                        radius: 19,
-                        backgroundColor: _lime,
-                        child: Text(
-                          _initials,
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 12,
+                    Builder(
+                      builder: (buttonContext) => InkWell(
+                        onTap: () => _showMiniProfileMenu(buttonContext),
+                        borderRadius: BorderRadius.circular(24),
+                        child: CircleAvatar(
+                          radius: 19,
+                          backgroundColor: _lime,
+                          child: Text(
+                            _initials,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ),
@@ -588,6 +590,170 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+  Future<void> _showMiniProfileMenu(BuildContext buttonContext) async {
+    final button = buttonContext.findRenderObject()! as RenderBox;
+    final overlay =
+        Overlay.of(context).context.findRenderObject()! as RenderBox;
+    final isActive = _userProfile['activo'] == true;
+    final buttonRect = Rect.fromPoints(
+      button.localToGlobal(Offset.zero, ancestor: overlay),
+      button.localToGlobal(
+        button.size.bottomRight(Offset.zero),
+        ancestor: overlay,
+      ),
+    );
+
+    final action = await showMenu<_MiniProfileAction>(
+      context: context,
+      position: RelativeRect.fromRect(buttonRect, Offset.zero & overlay.size),
+      color: _surface,
+      elevation: 12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      constraints: const BoxConstraints(minWidth: 210, maxWidth: 235),
+      items: [
+        PopupMenuItem<_MiniProfileAction>(
+          enabled: false,
+          height: 70,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _lime,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  _initials,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isActive ? 'MIEMBRO ACTIVO' : 'MIEMBRO INACTIVO',
+                      style: TextStyle(
+                        color: isActive ? _lime : _danger,
+                        fontSize: 8,
+                        letterSpacing: 1.4,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<_MiniProfileAction>(
+          enabled: false,
+          height: 28,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: _miniProfileDetail('Apellido', _userProfile['apellido']),
+        ),
+        PopupMenuItem<_MiniProfileAction>(
+          enabled: false,
+          height: 28,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: _miniProfileDetail('DNI', _userProfile['dni']),
+        ),
+        PopupMenuItem<_MiniProfileAction>(
+          enabled: false,
+          height: 28,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: _miniProfileDetail('Email', _userProfile['email']),
+        ),
+        PopupMenuItem<_MiniProfileAction>(
+          enabled: false,
+          height: 28,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: _miniProfileDetail(
+            'Nac.',
+            _formatBirthDate(_userProfile['fecha_nacimiento']),
+          ),
+        ),
+        const PopupMenuDivider(height: 1),
+        const PopupMenuItem<_MiniProfileAction>(
+          value: _MiniProfileAction.profile,
+          height: 42,
+          child: _MiniProfileMenuAction(
+            icon: Icons.person_outline,
+            label: 'Perfil completo',
+          ),
+        ),
+        const PopupMenuItem<_MiniProfileAction>(
+          value: _MiniProfileAction.reservations,
+          height: 42,
+          child: _MiniProfileMenuAction(
+            icon: Icons.calendar_month_outlined,
+            label: 'Mis reservas',
+          ),
+        ),
+        const PopupMenuDivider(height: 1),
+        const PopupMenuItem<_MiniProfileAction>(
+          value: _MiniProfileAction.logout,
+          height: 42,
+          child: _MiniProfileMenuAction(
+            icon: Icons.logout,
+            label: 'Cerrar sesión',
+            color: _danger,
+          ),
+        ),
+      ],
+    );
+
+    if (!mounted || action == null) return;
+
+    switch (action) {
+      case _MiniProfileAction.profile:
+        setState(() => _selectedTab = 3);
+      case _MiniProfileAction.reservations:
+        setState(() => _selectedTab = 2);
+      case _MiniProfileAction.logout:
+        await _authService.logout();
+        _redirectToLogin();
+    }
+  }
+
+  Widget _miniProfileDetail(String label, Object? value) {
+    final text = value?.toString().trim() ?? '';
+    return Row(
+      children: [
+        Text(label, style: const TextStyle(color: _muted, fontSize: 10)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text.isEmpty ? '—' : text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: const TextStyle(color: Colors.white70, fontSize: 10),
+          ),
+        ),
+      ],
     );
   }
 
