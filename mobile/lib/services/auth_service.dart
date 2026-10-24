@@ -190,7 +190,46 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> updateCurrentUser({
+    required String nombre,
+    required String apellido,
+    required String dni,
+    required String fechaNacimiento,
+  }) async {
+    final token = await getToken();
+
+    if (token == null || token.isEmpty) {
         throw const AuthException(AuthErrorType.invalidCredentials);
+      }
+
+    try {
+      final response = await http
+          .put(
+            Uri.parse('$_baseUrl/auth/me'),
+            headers: {
+              ..._authenticatedHeaders(token),
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'nombre': nombre.trim(),
+              'apellido': apellido.trim(),
+              'dni': dni.trim(),
+              'fecha_nacimiento': fechaNacimiento,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        await logout();
+        throw const AuthException(AuthErrorType.sessionExpired);
+      }
+
+      if (response.statusCode == 422) {
+        throw const AuthException(AuthErrorType.validation);
+      }
+
+      if (response.statusCode == 409) {
+        throw const AuthException(AuthErrorType.profileUpdateFailed);
       }
 
       if (response.statusCode != 200) {
