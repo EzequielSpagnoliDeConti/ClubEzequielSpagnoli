@@ -199,8 +199,8 @@ class AuthService {
     final token = await getToken();
 
     if (token == null || token.isEmpty) {
-        throw const AuthException(AuthErrorType.invalidCredentials);
-      }
+      throw const AuthException(AuthErrorType.invalidCredentials);
+    }
 
     try {
       final response = await http
@@ -255,6 +255,47 @@ class AuthService {
       throw const AuthException(AuthErrorType.server);
     }
   }
+
+  Future<void> deactivateCurrentUser() async {
+    final token = await getToken();
+
+    if (token == null || token.isEmpty) {
+      throw const AuthException(AuthErrorType.invalidCredentials);
+    }
+
+    try {
+      final response = await http
+          .delete(
+            Uri.parse('$_baseUrl/auth/me'),
+            headers: _authenticatedHeaders(token),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        await logout();
+        throw const AuthException(AuthErrorType.sessionExpired);
+      }
+
+      if (response.statusCode != 204) {
+        throw const AuthException(AuthErrorType.accountDeactivationFailed);
+      }
+
+      await logout();
+    } on AuthException {
+      rethrow;
+    } on SocketException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on TimeoutException {
+      throw const AuthException(AuthErrorType.server);
+    } on http.ClientException {
+      throw const AuthException(AuthErrorType.connectivity);
+    }
+  }
+
+  Map<String, String> _authenticatedHeaders(String token) => {
+    'Accept': 'application/json',
+    'Authorization': 'Bearer $token',
+  };
 
   Future<String?> getToken() {
     return _storage.read(key: _tokenKey);
