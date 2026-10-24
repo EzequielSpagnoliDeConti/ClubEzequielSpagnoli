@@ -8,7 +8,14 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.models.usuario import Usuario
-from app.auth.schemas import RegistroUsuario, RegistroRespuesta, LoginUsuario, TokenRespuesta, UsuarioActualRespuesta
+from app.auth.schemas import (
+    ActualizarPerfilUsuario,
+    LoginUsuario,
+    RegistroRespuesta,
+    RegistroUsuario,
+    TokenRespuesta,
+    UsuarioActualRespuesta,
+)
 from app.auth.security import crear_access_token
 from app.auth.dependencies import obtener_usuario_actual
 
@@ -145,3 +152,13 @@ def actualizar_mi_perfil(
         )
 
     return usuario
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def dar_de_baja_mi_cuenta(
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db),
+):
+    usuario.activo = False
+    usuario.updated_at = datetime.now()
+    db.commit()
