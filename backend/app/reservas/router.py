@@ -7,8 +7,14 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.espacio_deportivo import EspacioDeportivo
 from app.models.reserva import EstadoReserva, Reserva
+from app.models.sede import Sede
 from app.models.usuario import Usuario
-from app.reservas.schemas import ReservaDatos, ReservaRespuesta
+from app.auth.dependencies import obtener_usuario_actual
+from app.reservas.schemas import (
+    ReservaDatos,
+    ReservaHistorialRespuesta,
+    ReservaRespuesta,
+)
 
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
@@ -61,6 +67,39 @@ def validar_referencias_y_disponibilidad(
 @router.get("", response_model=list[ReservaRespuesta])
 def listar_reservas(db: Session = Depends(get_db)):
     return db.scalars(select(Reserva).order_by(Reserva.id)).all()
+
+
+@router.get("/mias", response_model=list[ReservaHistorialRespuesta])
+def listar_mis_reservas(
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db),
+):
+    reservas = db.execute(
+        select(Reserva, EspacioDeportivo, Sede)
+        .join(
+            EspacioDeportivo,
+            Reserva.espacio_deportivo_id == EspacioDeportivo.id,
+        )
+        .join(Sede, EspacioDeportivo.sede_id == Sede.id)
+        .where(Reserva.usuario_id == usuario.id)
+        .order_by(Reserva.fecha, Reserva.hora_inicio, Reserva.id)
+    ).all()
+
+    return [
+        ReservaHistorialRespuesta(
+            id=reserva.id,
+            espacio_deportivo_id=reserva.espacio_deportivo_id,
+            fecha=reserva.fecha,
+            hora_inicio=reserva.hora_inicio,
+            hora_fin=reserva.hora_fin,
+            estado=reserva.estado,
+            cancelada_at=reserva.cancelada_at,
+            sede_nombre=sede.nombre,
+            espacio_nombre=espacio.nombre,
+            tipo_espacio=espacio.tipo,
+        )
+        for reserva, espacio, sede in reservas
+    ]
 
 
 @router.post(
@@ -127,9 +166,18 @@ def actualizar_reserva(
     "/{reserva_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def cancelar_reserva(reserva_id: int, db: Session = Depends(get_db)):
+def cancelar_reserva(
+    reserva_id: int,
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db),
+):
     reserva = db.get(Reserva, reserva_id)
     if reserva is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Reserva no encontrada.",
+        )
+    if reserva.usuario_id != usuario.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Reserva no encontrada.",
