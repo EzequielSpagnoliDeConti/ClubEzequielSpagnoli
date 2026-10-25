@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../models/reservation.dart';
 import '../services/auth_service.dart';
+import '../services/reservations_service.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
+import 'reservations_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -60,11 +63,49 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedTab = 0;
   late Map<String, dynamic> _userProfile;
   final AuthService _authService = AuthService();
+  final ReservationsService _reservationsService = ReservationsService();
+  Reservation? _nextReservation;
+  bool _isLoadingNextReservation = true;
+  bool _nextReservationError = false;
 
   @override
   void initState() {
     super.initState();
     _userProfile = Map<String, dynamic>.from(widget.userProfile);
+    _loadNextReservation();
+  }
+
+  Future<void> _loadNextReservation() async {
+    setState(() {
+      _isLoadingNextReservation = true;
+      _nextReservationError = false;
+    });
+
+    try {
+      final reservations = await _reservationsService.getMyReservations();
+      final upcoming =
+          reservations.where((reservation) => reservation.isUpcoming).toList()
+            ..sort((a, b) {
+              final dateOrder = a.date.compareTo(b.date);
+              return dateOrder != 0
+                  ? dateOrder
+                  : a.startTime.compareTo(b.startTime);
+            });
+
+      if (!mounted) return;
+      setState(() {
+        _nextReservation = upcoming.isEmpty ? null : upcoming.first;
+      });
+    } on ReservationsException catch (error) {
+      if (!mounted) return;
+      if (error.type == ReservationsErrorType.sessionExpired) {
+        _redirectToLogin();
+        return;
+      }
+      setState(() => _nextReservationError = true);
+    } finally {
+      if (mounted) setState(() => _isLoadingNextReservation = false);
+    }
   }
 
   String get _displayName {
@@ -102,6 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _selectedTab == 0
                   ? _buildHomeContent()
+                  : _selectedTab == 2
+                  ? _buildReservationsContent()
                   : _selectedTab == 3
                   ? _buildProfileContent()
                   : _buildComingSoon(),
@@ -248,6 +291,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildReservationCard() {
+    final reservation = _nextReservation;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(14),
@@ -270,93 +315,158 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const Spacer(),
-              const Text(
-                'en 3 días',
-                style: TextStyle(color: _muted, fontSize: 10),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.arrow_forward, color: _muted, size: 13),
+              if (_isLoadingNextReservation)
+                const SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CircularProgressIndicator(
+                    color: _lime,
+                    strokeWidth: 2,
+                  ),
+                )
+              else if (_nextReservationError)
+                InkWell(
+                  onTap: _loadNextReservation,
+                  child: const Icon(Icons.refresh, color: _muted, size: 17),
+                )
+              else if (reservation != null)
+                Text(
+                  reservation.formattedDate,
+                  style: const TextStyle(color: _muted, fontSize: 10),
+                ),
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(9),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1F6F76), Color(0xFF1B2926)],
+          if (_isLoadingNextReservation)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Buscando tu próxima reserva...',
+                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                ),
+              ),
+            )
+          else if (_nextReservationError)
+            Row(
+              children: [
+                const Icon(Icons.cloud_off_outlined, color: _muted, size: 20),
+                const SizedBox(width: 9),
+                const Expanded(
+                  child: Text(
+                    'No se pudo cargar la próxima reserva.',
+                    style: TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                 ),
-                child: const Icon(Icons.sports_tennis, color: _lime, size: 24),
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sede Morón',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Moron_Rivadavia_Tenis_Polvo_Cancha_1',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: _muted, fontSize: 8),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '19:00',
+                TextButton(
+                  onPressed: _loadNextReservation,
+                  child: const Text(
+                    'REINTENTAR',
                     style: TextStyle(
                       color: _lime,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  Text('20:00', style: TextStyle(color: _muted, fontSize: 10)),
+                ),
+              ],
+            )
+          else if (reservation == null)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.event_available_outlined, color: _muted, size: 20),
+                  SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      'No tenés próximas reservas.',
+                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                    ),
+                  ),
                 ],
               ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 11),
-            child: Divider(height: 1, color: Colors.white12),
-          ),
-          const Row(
-            children: [
-              Text(
-                'sáb, 15 ago',
-                style: TextStyle(color: _muted, fontSize: 10),
-              ),
-              Spacer(),
-              Text(
-                '\$ 2.500',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
+            )
+          else
+            _buildNextReservationDetails(reservation),
         ],
       ),
     );
   }
+
+  Widget _buildNextReservationDetails(Reservation reservation) {
+    return Row(
+      children: [
+        Container(
+          width: 45,
+          height: 45,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(9),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1F6F76), Color(0xFF1B2926)],
+            ),
+          ),
+          child: Icon(
+            _reservationIcon(reservation.sport),
+            color: _lime,
+            size: 24,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                reservation.venueName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                reservation.spaceName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: _muted, fontSize: 9),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              reservation.startTime,
+              style: const TextStyle(
+                color: _lime,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            Text(
+              reservation.endTime,
+              style: const TextStyle(color: _muted, fontSize: 10),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  IconData _reservationIcon(String sport) => switch (sport) {
+    'TENIS' || 'PADDLE' => Icons.sports_tennis,
+    'FUTBOL' => Icons.sports_soccer,
+    'BASQUET' => Icons.sports_basketball,
+    'VOLEY' => Icons.sports_volleyball,
+    _ => Icons.sports,
+  };
 
   Widget _buildCategorySelector() {
     return SizedBox(
@@ -633,6 +743,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildReservationsContent() {
+    return ReservationsScreen(onSessionExpired: _redirectToLogin);
+  }
+
   void _redirectToLogin() {
     if (!mounted) return;
 
@@ -836,7 +950,10 @@ class _HomeScreenState extends State<HomeScreen> {
           final selected = index == _selectedTab;
           return Expanded(
             child: InkWell(
-              onTap: () => setState(() => _selectedTab = index),
+              onTap: () {
+                setState(() => _selectedTab = index);
+                if (index == 0) _loadNextReservation();
+              },
               borderRadius: BorderRadius.circular(14),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
