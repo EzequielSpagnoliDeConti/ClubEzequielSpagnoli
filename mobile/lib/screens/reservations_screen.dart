@@ -89,7 +89,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
           style: TextStyle(color: Colors.white),
         ),
         content: Text(
-          '¿Querés cancelar la reserva en ${reservation.venueName} '
+          '¿Querés cancelar la reserva en ${reservation.sedeName} '
           'del ${reservation.formattedDate}?',
           style: const TextStyle(color: Colors.white70),
         ),
@@ -135,6 +135,12 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     ReservationsErrorType.server => 'No se pudieron cargar las reservas.',
     ReservationsErrorType.cancellationRejected =>
       'No se puede cancelar esta reserva.',
+    ReservationsErrorType.slotUnavailable =>
+      'El horario seleccionado ya no está disponible.',
+    ReservationsErrorType.tariffNotConfigured =>
+      'Todavía no hay una tarifa cargada para este deporte.',
+    ReservationsErrorType.invalidSelection =>
+      'La fecha o el horario seleccionado no son válidos.',
   };
 
   void _showMessage(String message) {
@@ -350,7 +356,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      reservation.venueName,
+                      reservation.sedeName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(

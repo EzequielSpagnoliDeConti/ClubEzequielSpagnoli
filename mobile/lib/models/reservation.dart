@@ -5,7 +5,7 @@ class Reservation {
     required this.startTime,
     required this.endTime,
     required this.status,
-    required this.venueName,
+    required this.sedeName,
     required this.spaceName,
     required this.sport,
   });
@@ -33,7 +33,7 @@ class Reservation {
       startTime: (startTime as String).substring(0, 5),
       endTime: (endTime as String).substring(0, 5),
       status: json['estado'] as String,
-      venueName: json['sede_nombre'] as String,
+      sedeName: json['sede_nombre'] as String,
       spaceName: json['espacio_nombre'] as String,
       sport: json['tipo_espacio'] as String,
     );
@@ -44,7 +44,7 @@ class Reservation {
   final String startTime;
   final String endTime;
   final String status;
-  final String venueName;
+  final String sedeName;
   final String spaceName;
   final String sport;
 
