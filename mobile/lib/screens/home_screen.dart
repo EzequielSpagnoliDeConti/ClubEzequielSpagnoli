@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../models/reservation.dart';
+import '../models/sports_sede.dart';
 import '../services/auth_service.dart';
 import '../services/reservations_service.dart';
+import '../services/sedes_service.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'reservations_screen.dart';
+import 'sedes_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -26,53 +29,59 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color _surface = Color(0xFF1B1B1E);
   static const Color _muted = Color(0xFF8A8A90);
   static const Color _danger = Color(0xFFFF5B5B);
-
-  static const List<String> _categories = [
-    'Todos',
-    'Fútbol',
-    'Tenis',
-    'Golf',
-    'Hockey',
+  static const List<Color> _sedeColors = [
+    Color(0xFF123047),
+    Color(0xFF25451A),
+    Color(0xFF234138),
+    Color(0xFF593018),
+    Color(0xFF34254B),
   ];
 
-  static const List<_Venue> _venues = [
-    _Venue(
-      name: 'Morón',
-      address: 'Av. Rivadavia 17500',
-      categories: ['Fútbol', 'Tenis'],
-      rating: '4.7',
-      color: Color(0xFF123047),
-    ),
-    _Venue(
-      name: 'Ramos Mejía',
-      address: 'Calle Belgrano 1240',
-      categories: ['Fútbol', 'Hockey'],
-      rating: '4.9',
-      color: Color(0xFF25451A),
-    ),
-    _Venue(
-      name: 'Castelar',
-      address: 'Av. Santa Rosa 820',
-      categories: ['Tenis', 'Golf'],
-      rating: '4.8',
-      color: Color(0xFF234138),
-    ),
-  ];
-
-  String _selectedCategory = 'Todos';
+  String? _selectedSport;
   int _selectedTab = 0;
   late Map<String, dynamic> _userProfile;
   final AuthService _authService = AuthService();
   final ReservationsService _reservationsService = ReservationsService();
+  final SedesService _sedesService = SedesService();
   Reservation? _nextReservation;
+  SedeCatalog? _sedeCatalog;
   bool _isLoadingNextReservation = true;
   bool _nextReservationError = false;
+  bool _isLoadingSedes = true;
+  SedeErrorType? _sedesError;
 
   @override
   void initState() {
     super.initState();
     _userProfile = Map<String, dynamic>.from(widget.userProfile);
     _loadNextReservation();
+    _loadSedeCatalog();
+  }
+
+  Future<void> _loadSedeCatalog() async {
+    setState(() {
+      _isLoadingSedes = true;
+      _sedesError = null;
+    });
+
+    try {
+      final catalog = await _sedesService.getCatalog();
+      if (!mounted) return;
+      setState(() {
+        _sedeCatalog = catalog;
+        if (_selectedSport != null &&
+            !catalog.sedes.any(
+              (sede) => sede.sports.contains(_selectedSport),
+            )) {
+          _selectedSport = null;
+        }
+      });
+    } on SedeException catch (error) {
+      if (!mounted) return;
+      setState(() => _sedesError = error.type);
+    } finally {
+      if (mounted) setState(() => _isLoadingSedes = false);
+    }
   }
 
   Future<void> _loadNextReservation() async {
@@ -126,11 +135,14 @@ class _HomeScreenState extends State<HomeScreen> {
         : names.first[0].toUpperCase();
   }
 
-  List<_Venue> get _visibleVenues => _selectedCategory == 'Todos'
-      ? _venues
-      : _venues
-            .where((venue) => venue.categories.contains(_selectedCategory))
-            .toList();
+  List<String> get _availableSports =>
+      _sedeCatalog?.sedes.expand((sede) => sede.sports).toSet().toList() ?? [];
+
+  List<SportsSede> get _visibleSedes {
+    final sedes = _sedeCatalog?.sedes ?? [];
+    if (_selectedSport == null) return sedes;
+    return sedes.where((sede) => sede.sports.contains(_selectedSport)).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +155,8 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _selectedTab == 0
                   ? _buildHomeContent()
+                  : _selectedTab == 1
+                  ? _buildSedesContent()
                   : _selectedTab == 2
                   ? _buildReservationsContent()
                   : _selectedTab == 3
@@ -168,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 16),
           _buildCategorySelector(),
           const SizedBox(height: 20),
-          _buildVenuesSection(),
+          _buildSedesSection(),
         ],
       ),
     );
@@ -419,7 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                reservation.venueName,
+                reservation.sedeName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -474,18 +488,13 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
-        itemCount: _categories.length,
+        itemCount: _availableSports.length + 1,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final category = _categories[index];
-          final isSelected = category == _selectedCategory;
-          final icon = switch (category) {
-            'Fútbol' => Icons.sports_soccer,
-            'Tenis' => Icons.sports_tennis,
-            'Golf' => Icons.golf_course,
-            'Hockey' => Icons.sports_hockey,
-            _ => null,
-          };
+          final sport = index == 0 ? null : _availableSports[index - 1];
+          final label = sport == null ? 'Todos' : _sportLabel(sport);
+          final isSelected = sport == _selectedSport;
+          final icon = sport == null ? null : _sportIcon(sport);
           return ChoiceChip(
             selected: isSelected,
             showCheckmark: false,
@@ -496,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     size: 14,
                     color: isSelected ? Colors.black : Colors.white70,
                   ),
-            label: Text(category),
+            label: Text(label),
             labelStyle: TextStyle(
               color: isSelected ? Colors.black : Colors.white70,
               fontSize: 11,
@@ -509,14 +518,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 5),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            onSelected: (_) => setState(() => _selectedCategory = category),
+            onSelected: (_) => setState(() => _selectedSport = sport),
           );
         },
       ),
     );
   }
 
-  Widget _buildVenuesSection() {
+  Widget _buildSedesSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -555,7 +564,41 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 10),
         SizedBox(
           height: 151,
-          child: _visibleVenues.isEmpty
+          child: _isLoadingSedes
+              ? const Center(
+                  child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      color: _lime,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                )
+              : _sedesError != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'No se pudieron cargar las sedes.',
+                        style: TextStyle(color: _muted, fontSize: 11),
+                      ),
+                      TextButton(
+                        onPressed: _loadSedeCatalog,
+                        child: const Text(
+                          'REINTENTAR',
+                          style: TextStyle(
+                            color: _lime,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : _visibleSedes.isEmpty
               ? const Center(
                   child: Text(
                     'No hay sedes para esta categoría',
@@ -565,24 +608,25 @@ class _HomeScreenState extends State<HomeScreen> {
               : ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
-                  itemCount: _visibleVenues.length,
+                  itemCount: _visibleSedes.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 10),
                   itemBuilder: (context, index) =>
-                      _buildVenueCard(_visibleVenues[index]),
+                      _buildSedeCard(_visibleSedes[index]),
                 ),
         ),
       ],
     );
   }
 
-  Widget _buildVenueCard(_Venue venue) {
+  Widget _buildSedeCard(SportsSede sede) {
+    final sports = sede.sports;
     return SizedBox(
       width: 184,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
         child: Container(
           decoration: BoxDecoration(
-            color: _surface,
+            color: _sedeColor(sede.id),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             borderRadius: BorderRadius.circular(14),
           ),
@@ -597,7 +641,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [venue.color, const Color(0xFF0B1011)],
+                          colors: [
+                            _sedeColor(sede.id),
+                            const Color(0xFF0B1011),
+                          ],
                         ),
                       ),
                     ),
@@ -615,7 +662,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
-                          '★ ${venue.rating}',
+                          '${sede.courts.length} ${sede.courts.length == 1 ? 'CANCHA' : 'CANCHAS'}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 9,
@@ -628,7 +675,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       left: 9,
                       bottom: 7,
                       child: Text(
-                        venue.name.toUpperCase(),
+                        sede.name.toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 9,
@@ -654,7 +701,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 3),
                         Expanded(
                           child: Text(
-                            venue.address,
+                            sede.address,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: _muted, fontSize: 8),
@@ -666,8 +713,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     Wrap(
                       spacing: 4,
                       runSpacing: 3,
-                      children: venue.categories
-                          .map(_buildCategoryBadge)
+                      children: sports
+                          .map(
+                            (sport) => _buildCategoryBadge(_sportLabel(sport)),
+                          )
                           .toList(),
                     ),
                   ],
@@ -696,6 +745,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Color _sedeColor(int sedeId) =>
+      _sedeColors[(sedeId - 1) % _sedeColors.length];
+
+  String _sportLabel(String sport) => switch (sport) {
+    'FUTBOL' => 'Fútbol',
+    'PADDLE' => 'Pádel',
+    'BASQUET' => 'Básquet',
+    'TENIS' => 'Tenis',
+    'VOLEY' => 'Vóley',
+    _ => sport,
+  };
+
+  IconData _sportIcon(String sport) => switch (sport) {
+    'TENIS' || 'PADDLE' => Icons.sports_tennis,
+    'FUTBOL' => Icons.sports_soccer,
+    'BASQUET' => Icons.sports_basketball,
+    'VOLEY' => Icons.sports_volleyball,
+    _ => Icons.sports,
+  };
 
   Widget _buildComingSoon() {
     const labels = ['Inicio', 'Sedes', 'Reservas', 'Perfil'];
@@ -745,6 +814,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildReservationsContent() {
     return ReservationsScreen(onSessionExpired: _redirectToLogin);
+  }
+
+  Widget _buildSedesContent() {
+    return SedesScreen(onSessionExpired: _redirectToLogin);
   }
 
   void _redirectToLogin() {
@@ -952,7 +1025,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: InkWell(
               onTap: () {
                 setState(() => _selectedTab = index);
-                if (index == 0) _loadNextReservation();
+                if (index == 0) {
+                  _loadNextReservation();
+                  _loadSedeCatalog();
+                }
               },
               borderRadius: BorderRadius.circular(14),
               child: Padding(
@@ -1000,22 +1076,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
   }
-}
-
-class _Venue {
-  const _Venue({
-    required this.name,
-    required this.address,
-    required this.categories,
-    required this.rating,
-    required this.color,
-  });
-
-  final String name;
-  final String address;
-  final List<String> categories;
-  final String rating;
-  final Color color;
 }
 
 enum _MiniProfileAction { profile, reservations, logout }
