@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime, time, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -8,12 +8,15 @@ from app.db.database import get_db
 from app.models.espacio_deportivo import EspacioDeportivo
 from app.models.reserva import EstadoReserva, Reserva
 from app.models.sede import Sede
+from app.models.tarifa import Tarifa
 from app.models.usuario import Usuario
 from app.auth.dependencies import obtener_usuario_actual
 from app.reservas.schemas import (
     ReservaDatos,
     ReservaHistorialRespuesta,
+    ReservaMiaDatos,
     ReservaRespuesta,
+    HorarioDisponibleRespuesta,
 )
 
 
@@ -100,6 +103,152 @@ def listar_mis_reservas(
         )
         for reserva, espacio, sede in reservas
     ]
+
+
+@router.get(
+    "/disponibilidad/{espacio_id}",
+    response_model=list[HorarioDisponibleRespuesta],
+)
+def consultar_disponibilidad(
+    espacio_id: int,
+    fecha: date,
+    duracion_horas: int = Query(ge=1, le=2),
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db),
+):
+    hoy = date.today()
+    if fecha < hoy:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No se puede consultar disponibilidad para una fecha pasada.",
+        )
+
+    espacio = db.get(EspacioDeportivo, espacio_id)
+    if espacio is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Espacio deportivo no encontrado.",
+        )
+
+    sede = db.get(Sede, espacio.sede_id)
+    if sede is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sede no encontrada.",
+        )
+
+    apertura = datetime.combine(
+        fecha,
+        time(sede.hora_apertura.hour, sede.hora_apertura.minute),
+    )
+    cierre = datetime.combine(
+        fecha,
+        time(sede.hora_cierre.hour, sede.hora_cierre.minute),
+    )
+    duracion = timedelta(hours=duracion_horas)
+    reservas_activas = db.scalars(
+        select(Reserva).where(
+            Reserva.espacio_deportivo_id == espacio_id,
+            Reserva.fecha == fecha,
+            Reserva.estado == EstadoReserva.ACTIVA,
+        )
+    ).all()
+
+    ahora = datetime.now()
+    horarios: list[HorarioDisponibleRespuesta] = []
+    inicio = apertura
+    while inicio + duracion <= cierre:
+        fin = inicio + duracion
+        ocupado = any(
+            reserva.hora_inicio < fin.time()
+            and reserva.hora_fin > inicio.time()
+            for reserva in reservas_activas
+        )
+        if not ocupado and (fecha > hoy or inicio > ahora):
+            horarios.append(
+                HorarioDisponibleRespuesta(
+                    hora_inicio=inicio.time(),
+                    hora_fin=fin.time(),
+                )
+            )
+        inicio += timedelta(hours=1)
+
+    return horarios
+
+
+@router.post(
+    "/mias",
+    response_model=ReservaRespuesta,
+    status_code=status.HTTP_201_CREATED,
+)
+def crear_mi_reserva(
+    datos: ReservaMiaDatos,
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db),
+):
+    espacio = db.get(EspacioDeportivo, datos.espacio_deportivo_id)
+    if espacio is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Espacio deportivo no encontrado.",
+        )
+
+    tarifa = db.scalar(
+        select(Tarifa).where(Tarifa.tipo_espacio == espacio.tipo.value)
+    )
+    if tarifa is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No hay una tarifa configurada para este deporte.",
+        )
+
+    inicio = datetime.combine(datos.fecha, datos.hora_inicio)
+    fin = datetime.combine(datos.fecha, datos.hora_fin)
+    duracion = fin - inicio
+    if datos.fecha < date.today() or duracion not in (
+        timedelta(hours=1),
+        timedelta(hours=2),
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="La reserva debe ser de una o dos horas y para hoy o una fecha futura.",
+        )
+
+    sede = db.get(Sede, espacio.sede_id)
+    apertura = datetime.combine(datos.fecha, sede.hora_apertura)
+    cierre = datetime.combine(datos.fecha, sede.hora_cierre)
+    if inicio < apertura or fin > cierre:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="El horario solicitado está fuera del horario de atención.",
+        )
+
+    reserva_datos = ReservaDatos(
+        usuario_id=usuario.id,
+        espacio_deportivo_id=datos.espacio_deportivo_id,
+        fecha=datos.fecha,
+        hora_inicio=datos.hora_inicio,
+        hora_fin=datos.hora_fin,
+    )
+    validar_referencias_y_disponibilidad(reserva_datos, db)
+    if datos.fecha == date.today() and inicio <= datetime.now():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El horario solicitado ya pasó.",
+        )
+
+    ahora = datetime.now()
+    reserva = Reserva(
+        **reserva_datos.model_dump(),
+        estado=EstadoReserva.ACTIVA,
+        created_at=ahora,
+        updated_at=ahora,
+        cancelada_at=None,
+    )
+    db.add(reserva)
+    db.commit()
+    db.refresh(reserva)
+    return reserva
 
 
 @router.post(

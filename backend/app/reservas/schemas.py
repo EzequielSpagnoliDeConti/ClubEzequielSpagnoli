@@ -41,3 +41,21 @@ class ReservaHistorialRespuesta(BaseModel):
     sede_nombre: str
     espacio_nombre: str
     tipo_espacio: TipoEspacio
+
+
+class ReservaMiaDatos(BaseModel):
+    espacio_deportivo_id: int = Field(gt=0)
+    fecha: date
+    hora_inicio: time
+    hora_fin: time
+
+    @model_validator(mode="after")
+    def validar_horario(self):
+        if self.hora_inicio >= self.hora_fin:
+            raise ValueError("La hora de inicio debe ser anterior a la hora de fin.")
+        return self
+
+
+class HorarioDisponibleRespuesta(BaseModel):
+    hora_inicio: time
+    hora_fin: time
