@@ -14,6 +14,7 @@ enum AuthErrorType {
   sessionExpired,
   profileUpdateFailed,
   accountDeactivationFailed,
+  passwordResetFailed,
 }
 
 class AuthException implements Exception {
@@ -67,6 +68,80 @@ class AuthService {
         key: _tokenKey,
         value: data['access_token'] as String,
       );
+    } on AuthException {
+      rethrow;
+    } on SocketException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on TimeoutException {
+      throw const AuthException(AuthErrorType.server);
+    } on http.ClientException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on FormatException {
+      throw const AuthException(AuthErrorType.server);
+    }
+  }
+
+  Future<void> requestPasswordReset({required String email}) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/auth/forgot-password'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({'email': email.trim()}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 422) {
+        throw const AuthException(AuthErrorType.validation);
+      }
+
+      if (response.statusCode != 202) {
+        throw const AuthException(AuthErrorType.server);
+      }
+    } on AuthException {
+      rethrow;
+    } on SocketException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on TimeoutException {
+      throw const AuthException(AuthErrorType.server);
+    } on http.ClientException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on FormatException {
+      throw const AuthException(AuthErrorType.server);
+    }
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String token,
+    required String password,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/auth/reset-password'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'email': email.trim(),
+              'token': token.trim(),
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 400 || response.statusCode == 422) {
+        throw const AuthException(AuthErrorType.passwordResetFailed);
+      }
+
+      if (response.statusCode != 200) {
+        throw const AuthException(AuthErrorType.server);
+      }
     } on AuthException {
       rethrow;
     } on SocketException {

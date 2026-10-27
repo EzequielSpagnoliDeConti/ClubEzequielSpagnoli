@@ -113,6 +113,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       AuthErrorType.profileUpdateFailed => 'Ese DNI ya está registrado.',
       AuthErrorType.accountDeactivationFailed =>
         'No se pudo dar de baja la cuenta. Intentá nuevamente.',
+      AuthErrorType.passwordResetFailed =>
+        'No se pudo completar la operación. Intentá nuevamente.',
       AuthErrorType.registrationFailed => 'No se pudo completar la operación.',
       AuthErrorType.server => 'Error del servidor. Intentá más tarde.',
     };
@@ -454,6 +456,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       AuthErrorType.profileUpdateFailed => 'Ese DNI ya está registrado.',
       AuthErrorType.accountDeactivationFailed =>
         'No se pudo dar de baja la cuenta.',
+      AuthErrorType.passwordResetFailed =>
+        'No se pudo completar la operación. Intentá nuevamente.',
       AuthErrorType.registrationFailed => 'No se pudo completar la operación.',
       AuthErrorType.server => 'Error del servidor. Intentá más tarde.',
     };

@@ -3,6 +3,7 @@ from app.models.sede import Sede
 from app.models.espacio_deportivo import EspacioDeportivo
 from app.models.reserva import Reserva
 from app.models.tarifa import Tarifa
+from app.models.password_reset_token import PasswordResetToken
 
 __all__ = [
     "Usuario",
@@ -10,4 +11,5 @@ __all__ = [
     "EspacioDeportivo",
     "Reserva",
     "Tarifa",
+    "PasswordResetToken",
 ]

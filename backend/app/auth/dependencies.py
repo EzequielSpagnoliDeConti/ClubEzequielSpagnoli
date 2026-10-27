@@ -42,8 +42,9 @@ def obtener_usuario_actual(
             )
 
         user_id = int(sub)
+        token_version = int(payload.get("ver", 0))
 
-    except (jwt.InvalidTokenError, ValueError):
+    except (jwt.InvalidTokenError, TypeError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido o vencido",
@@ -54,7 +55,11 @@ def obtener_usuario_actual(
         select(Usuario).where(Usuario.id == user_id)
     )
 
-    if usuario is None or not usuario.activo:
+    if (
+        usuario is None
+        or not usuario.activo
+        or usuario.token_version != token_version
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario no autorizado",

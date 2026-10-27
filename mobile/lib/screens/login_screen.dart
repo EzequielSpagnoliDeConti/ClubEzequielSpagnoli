@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
+import 'password_reset_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -102,6 +103,9 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
         case AuthErrorType.accountDeactivationFailed:
           mensaje = 'No se pudo dar de baja la cuenta';
+          break;
+        case AuthErrorType.passwordResetFailed:
+          mensaje = 'El código no es válido o venció.';
           break;
       }
 
@@ -276,15 +280,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Próximamente: recuperar contraseña.',
-                                  ),
-                                ),
-                              );
-                            },
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => PasswordResetScreen(
+                                          initialEmail: _emailController.text
+                                              .trim(),
+                                        ),
+                                      ),
+                                    );
+                                  },
                             child: const Text(
                               '¿Olvidaste tu contraseña?',
                               style: TextStyle(color: _lime),
