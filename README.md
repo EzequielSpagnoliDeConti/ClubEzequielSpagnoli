@@ -41,3 +41,8 @@ Iniciar API
 ```bash
 uvicorn app.main:app --reload
 ```
+
+Iniciar Flutter
+```bash
+flutter run -d chrome --web-port=5000
+```
