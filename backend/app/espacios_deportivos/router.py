@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.espacios_deportivos.naming import generar_nombre_espacio
 from app.espacios_deportivos.schemas import (
     EspacioDeportivoDatos,
     EspacioDeportivoRespuesta,
@@ -63,8 +64,15 @@ def crear_espacio_deportivo(
             detail="Sede no encontrada.",
         )
 
+    sede = db.get(Sede, datos.sede_id)
     espacio = EspacioDeportivo(
         **datos.model_dump(),
+        nombre=generar_nombre_espacio(
+            sede.nombre,
+            sede.direccion,
+            datos.tipo,
+            datos.numero,
+        ),
         created_at=datetime.now(),
     )
     db.add(espacio)
@@ -111,8 +119,16 @@ def actualizar_espacio_deportivo(
             detail="Sede no encontrada.",
         )
 
-    for campo, valor in datos.model_dump().items():
-        setattr(espacio, campo, valor)
+    sede = db.get(Sede, datos.sede_id)
+    espacio.sede_id = datos.sede_id
+    espacio.tipo = datos.tipo
+    espacio.numero = datos.numero
+    espacio.nombre = generar_nombre_espacio(
+        sede.nombre,
+        sede.direccion,
+        datos.tipo,
+        datos.numero,
+    )
 
     db.commit()
     db.refresh(espacio)

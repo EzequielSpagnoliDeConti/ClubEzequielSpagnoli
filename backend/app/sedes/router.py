@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.espacios_deportivos.naming import generar_nombre_espacio
 from app.models.espacio_deportivo import EspacioDeportivo
 from app.models.sede import Sede
 from app.sedes.schemas import SedeDatos, SedeRespuesta
@@ -57,6 +58,17 @@ def actualizar_sede(
 
     for campo, valor in datos.model_dump().items():
         setattr(sede, campo, valor)
+
+    espacios = db.scalars(
+        select(EspacioDeportivo).where(EspacioDeportivo.sede_id == sede_id)
+    ).all()
+    for espacio in espacios:
+        espacio.nombre = generar_nombre_espacio(
+            sede.nombre,
+            sede.direccion,
+            espacio.tipo,
+            espacio.numero,
+        )
 
     db.commit()
     db.refresh(sede)

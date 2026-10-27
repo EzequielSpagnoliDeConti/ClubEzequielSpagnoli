@@ -5,6 +5,7 @@ from random import randint
 from sqlalchemy import select
 
 from app.db.database import SessionLocal
+from app.espacios_deportivos.naming import generar_nombre_espacio
 from app.models.espacio_deportivo import EspacioDeportivo, TipoEspacio
 from app.models.sede import Sede
 from app.models.tarifa import Tarifa
@@ -15,72 +16,72 @@ SEDES = (
         "nombre": "Moreno",
         "direccion": "Av. Victorica 1250, Moreno",
         "espacios": (
-            (TipoEspacio.FUTBOL, "Cancha de futbol 5"),
-            (TipoEspacio.FUTBOL, "Cancha de futbol 7"),
-            (TipoEspacio.PADDLE, "Cancha de paddle 1"),
-            (TipoEspacio.PADDLE, "Cancha de paddle 2"),
-            (TipoEspacio.BASQUET, "Cancha de basquet"),
-            (TipoEspacio.VOLEY, "Cancha de voley"),
+            TipoEspacio.FUTBOL,
+            TipoEspacio.FUTBOL,
+            TipoEspacio.PADDLE,
+            TipoEspacio.PADDLE,
+            TipoEspacio.BASQUET,
+            TipoEspacio.VOLEY,
         ),
     },
     {
         "nombre": "Moron",
         "direccion": "Av. Rivadavia 17800, Moron",
         "espacios": (
-            (TipoEspacio.FUTBOL, "Cancha de futbol 5"),
-            (TipoEspacio.PADDLE, "Cancha de paddle"),
-            (TipoEspacio.TENIS, "Cancha de tenis"),
-            (TipoEspacio.BASQUET, "Cancha de basquet"),
-            (TipoEspacio.VOLEY, "Cancha de voley"),
-            (TipoEspacio.VOLEY, "Cancha de voley auxiliar"),
+            TipoEspacio.FUTBOL,
+            TipoEspacio.PADDLE,
+            TipoEspacio.TENIS,
+            TipoEspacio.BASQUET,
+            TipoEspacio.VOLEY,
+            TipoEspacio.VOLEY,
         ),
     },
     {
         "nombre": "Castelar",
         "direccion": "Av. Santa Rosa 2100, Castelar",
         "espacios": (
-            (TipoEspacio.FUTBOL, "Cancha de futbol 7"),
-            (TipoEspacio.PADDLE, "Cancha de paddle"),
-            (TipoEspacio.TENIS, "Cancha de tenis 1"),
-            (TipoEspacio.TENIS, "Cancha de tenis 2"),
-            (TipoEspacio.BASQUET, "Cancha de basquet"),
-            (TipoEspacio.VOLEY, "Cancha de voley"),
+            TipoEspacio.FUTBOL,
+            TipoEspacio.PADDLE,
+            TipoEspacio.TENIS,
+            TipoEspacio.TENIS,
+            TipoEspacio.BASQUET,
+            TipoEspacio.VOLEY,
         ),
     },
     {
         "nombre": "Ramos Mejia",
         "direccion": "Av. de Mayo 950, Ramos Mejia",
         "espacios": (
-            (TipoEspacio.FUTBOL, "Cancha de futbol 5"),
-            (TipoEspacio.FUTBOL, "Cancha de futbol 7"),
-            (TipoEspacio.PADDLE, "Cancha de paddle"),
-            (TipoEspacio.TENIS, "Cancha de tenis"),
-            (TipoEspacio.BASQUET, "Cancha de basquet"),
-            (TipoEspacio.VOLEY, "Cancha de voley"),
+            TipoEspacio.FUTBOL,
+            TipoEspacio.FUTBOL,
+            TipoEspacio.PADDLE,
+            TipoEspacio.TENIS,
+            TipoEspacio.BASQUET,
+            TipoEspacio.VOLEY,
         ),
     },
     {
         "nombre": "Ituzaingo",
         "direccion": "Av. Ratti 800, Ituzaingo",
         "espacios": (
-            (TipoEspacio.FUTBOL, "Cancha de futbol 5"),
-            (TipoEspacio.PADDLE, "Cancha de paddle 1"),
-            (TipoEspacio.PADDLE, "Cancha de paddle 2"),
-            (TipoEspacio.TENIS, "Cancha de tenis"),
-            (TipoEspacio.BASQUET, "Cancha de basquet"),
-            (TipoEspacio.VOLEY, "Cancha de voley"),
+            TipoEspacio.FUTBOL,
+            TipoEspacio.PADDLE,
+            TipoEspacio.PADDLE,
+            TipoEspacio.TENIS,
+            TipoEspacio.BASQUET,
+            TipoEspacio.VOLEY,
         ),
     },
     {
         "nombre": "Haedo",
         "direccion": "Av. Presidente Peron 250, Haedo",
         "espacios": (
-            (TipoEspacio.FUTBOL, "Cancha de futbol 5"),
-            (TipoEspacio.PADDLE, "Cancha de paddle"),
-            (TipoEspacio.TENIS, "Cancha de tenis"),
-            (TipoEspacio.BASQUET, "Cancha de basquet"),
-            (TipoEspacio.VOLEY, "Cancha de voley 1"),
-            (TipoEspacio.VOLEY, "Cancha de voley 2"),
+            TipoEspacio.FUTBOL,
+            TipoEspacio.PADDLE,
+            TipoEspacio.TENIS,
+            TipoEspacio.BASQUET,
+            TipoEspacio.VOLEY,
+            TipoEspacio.VOLEY,
         ),
     },
 )
@@ -121,7 +122,20 @@ def seed() -> tuple[int, int, int]:
                 ).all()
             )
 
-            for numero, (tipo, nombre) in enumerate(datos_sede["espacios"], start=1):
+            espacios_existentes = session.scalars(
+                select(EspacioDeportivo).where(
+                    EspacioDeportivo.sede_id == sede.id
+                )
+            ).all()
+            for espacio in espacios_existentes:
+                espacio.nombre = generar_nombre_espacio(
+                    sede.nombre,
+                    sede.direccion,
+                    espacio.tipo,
+                    espacio.numero,
+                )
+
+            for numero, tipo in enumerate(datos_sede["espacios"], start=1):
                 if numero in numeros_existentes:
                     continue
                 session.add(
@@ -129,7 +143,12 @@ def seed() -> tuple[int, int, int]:
                         sede_id=sede.id,
                         tipo=tipo,
                         numero=numero,
-                        nombre=nombre,
+                        nombre=generar_nombre_espacio(
+                            sede.nombre,
+                            sede.direccion,
+                            tipo,
+                            numero,
+                        ),
                         created_at=ahora,
                     )
                 )
