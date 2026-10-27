@@ -73,3 +73,8 @@ linux
 macos
 web
 windows
+
+# FCM web messaging service worker (other generated web files stay ignored).
+!mobile/web/
+mobile/web/*
+!mobile/web/firebase-messaging-sw.js
