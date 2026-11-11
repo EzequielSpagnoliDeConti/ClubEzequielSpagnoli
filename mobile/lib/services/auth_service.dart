@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 
 enum AuthErrorType {
   invalidCredentials,
@@ -25,7 +26,7 @@ class AuthException implements Exception {
 
 class AuthService {
   // Para ejecutar Flutter en Windows y FastAPI en la misma PC.
-  static const String _baseUrl = 'http://127.0.0.1:8000';
+  static const String _baseUrl = ApiConfig.baseUrl;
 
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 

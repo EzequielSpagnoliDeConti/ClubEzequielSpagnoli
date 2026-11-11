@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../models/sports_sede.dart';
+import '../config/api_config.dart';
 
 enum SedeErrorType { connectivity, server }
 
@@ -22,7 +23,7 @@ class SedeCatalog {
 }
 
 class SedesService {
-  static const String _baseUrl = 'http://127.0.0.1:8000';
+  static const String _baseUrl = ApiConfig.baseUrl;
 
   Future<SedeCatalog> getCatalog() async {
     try {
