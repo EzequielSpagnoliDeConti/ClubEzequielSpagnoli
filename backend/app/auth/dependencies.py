@@ -1,11 +1,12 @@
-import jwt
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from firebase_admin import auth
+from firebase_admin.exceptions import FirebaseError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.auth.security import JWT_ALGORITHM, JWT_SECRET_KEY
+from app.core.firebase import verificar_token_firebase
 from app.db.database import get_db
 from app.models.usuario import Usuario
 
@@ -13,12 +14,12 @@ from app.models.usuario import Usuario
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def obtener_usuario_actual(
+def obtener_payload_firebase(
     credentials: HTTPAuthorizationCredentials | None = Depends(
         bearer_scheme
     ),
-    db: Session = Depends(get_db),
-) -> Usuario:
+) -> dict:
+
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -27,39 +28,49 @@ def obtener_usuario_actual(
         )
 
     try:
-        payload = jwt.decode(
-            credentials.credentials,
-            JWT_SECRET_KEY,
-            algorithms=[JWT_ALGORITHM],
-        )
+        return verificar_token_firebase(credentials.credentials)
 
-        sub = payload.get("sub")
-        if sub is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token inválido",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        user_id = int(sub)
-        token_version = int(payload.get("ver", 0))
-
-    except (jwt.InvalidTokenError, TypeError, ValueError):
+    except (
+        auth.InvalidIdTokenError,
+        auth.ExpiredIdTokenError,
+        auth.RevokedIdTokenError,
+        auth.UserDisabledError,
+        ValueError,
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o vencido",
+            detail="Token de Firebase inválido o vencido",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    except FirebaseError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="No se pudo verificar la autenticación con Firebase",
+        )
+
+
+def obtener_usuario_actual(
+    payload: dict = Depends(obtener_payload_firebase),
+    db: Session = Depends(get_db),
+) -> Usuario:
+
+    firebase_uid = payload.get("uid")
+
+    if not firebase_uid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token de Firebase inválido",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     usuario = db.scalar(
-        select(Usuario).where(Usuario.id == user_id)
+        select(Usuario).where(
+            Usuario.firebase_uid == firebase_uid
+        )
     )
 
-    if (
-        usuario is None
-        or not usuario.activo
-        or usuario.token_version != token_version
-    ):
+    if usuario is None or not usuario.activo:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario no autorizado",

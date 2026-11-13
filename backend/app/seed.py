@@ -1,6 +1,11 @@
 from datetime import datetime, time
 from decimal import Decimal
+from pathlib import Path
 from random import randint
+import sys
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from sqlalchemy import select
 

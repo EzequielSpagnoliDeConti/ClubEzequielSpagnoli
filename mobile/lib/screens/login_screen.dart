@@ -105,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
           mensaje = 'No se pudo dar de baja la cuenta';
           break;
         case AuthErrorType.passwordResetFailed:
-          mensaje = 'El código no es válido o venció.';
+          mensaje = 'No se pudo enviar el correo de recuperación.';
           break;
       }
 

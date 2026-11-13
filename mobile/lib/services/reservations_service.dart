@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../models/reservation.dart';
 import '../models/sports_sede.dart';
 import 'auth_service.dart';
+import '../config/api_config.dart';
 
 enum ReservationsErrorType {
   sessionExpired,
@@ -25,7 +26,7 @@ class ReservationsException implements Exception {
 }
 
 class ReservationsService {
-  static const String _baseUrl = 'http://127.0.0.1:8000';
+  static const String _baseUrl = ApiConfig.baseUrl;
 
   final AuthService _authService = AuthService();
 
