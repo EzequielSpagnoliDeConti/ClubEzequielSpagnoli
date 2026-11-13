@@ -1,9 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
 enum AuthErrorType {
@@ -28,90 +28,56 @@ class AuthService {
   // Para ejecutar Flutter en Windows y FastAPI en la misma PC.
   static const String _baseUrl = ApiConfig.baseUrl;
 
-  static const FlutterSecureStorage _storage = FlutterSecureStorage();
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  static const String _tokenKey = 'access_token';
+  Future<String?> getToken() async {
+    return _firebaseAuth.currentUser?.getIdToken();
+  }
+
+  Future<void> logout() async {
+    await _firebaseAuth.signOut();
+  }
+
+  Map<String, String> _authenticatedHeaders(String token) => {
+    'Accept': 'application/json',
+    'Authorization': 'Bearer $token',
+  };
 
   Future<void> login({required String email, required String password}) async {
     try {
-      final response = await http
-          .post(
-            Uri.parse('$_baseUrl/auth/login'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode({'email': email.trim(), 'password': password}),
-          )
-          .timeout(const Duration(seconds: 15));
-
-      if (response.statusCode == 401 || response.statusCode == 403) {
+      await _firebaseAuth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-credential' ||
+          e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-email') {
         throw const AuthException(AuthErrorType.invalidCredentials);
       }
 
-      if (response.statusCode >= 500) {
-        throw const AuthException(AuthErrorType.server);
+      if (e.code == 'network-request-failed') {
+        throw const AuthException(AuthErrorType.connectivity);
       }
 
-      if (response.statusCode != 200) {
-        throw const AuthException(AuthErrorType.server);
-      }
-
-      final data = jsonDecode(response.body);
-
-      if (data is! Map<String, dynamic> ||
-          data['access_token'] is! String ||
-          (data['access_token'] as String).isEmpty) {
-        throw const AuthException(AuthErrorType.server);
-      }
-
-      await _storage.write(
-        key: _tokenKey,
-        value: data['access_token'] as String,
-      );
-    } on AuthException {
-      rethrow;
-    } on SocketException {
-      throw const AuthException(AuthErrorType.connectivity);
-    } on TimeoutException {
-      throw const AuthException(AuthErrorType.server);
-    } on http.ClientException {
-      throw const AuthException(AuthErrorType.connectivity);
-    } on FormatException {
       throw const AuthException(AuthErrorType.server);
     }
   }
 
   Future<void> requestPasswordReset({required String email}) async {
     try {
-      final response = await http
-          .post(
-            Uri.parse('$_baseUrl/auth/forgot-password'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode({'email': email.trim()}),
-          )
-          .timeout(const Duration(seconds: 15));
-
-      if (response.statusCode == 422) {
+      await _firebaseAuth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-email') {
         throw const AuthException(AuthErrorType.validation);
       }
 
-      if (response.statusCode != 202) {
-        throw const AuthException(AuthErrorType.server);
+      if (e.code == 'network-request-failed') {
+        throw const AuthException(AuthErrorType.connectivity);
       }
-    } on AuthException {
-      rethrow;
-    } on SocketException {
-      throw const AuthException(AuthErrorType.connectivity);
-    } on TimeoutException {
-      throw const AuthException(AuthErrorType.server);
-    } on http.ClientException {
-      throw const AuthException(AuthErrorType.connectivity);
-    } on FormatException {
-      throw const AuthException(AuthErrorType.server);
+
+      throw const AuthException(AuthErrorType.passwordResetFailed);
     }
   }
 
@@ -164,76 +130,120 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    UserCredential? credential;
+
     try {
+      credential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        throw const AuthException(AuthErrorType.registrationFailed);
+      }
+
+      if (e.code == 'weak-password' || e.code == 'invalid-email') {
+        throw const AuthException(AuthErrorType.validation);
+      }
+
+      if (e.code == 'network-request-failed') {
+        throw const AuthException(AuthErrorType.connectivity);
+      }
+
+      throw const AuthException(AuthErrorType.server);
+    }
+
+    try {
+      final user = credential.user;
+
+      if (user == null) {
+        throw const AuthException(AuthErrorType.server);
+      }
+
+      final idToken = await user.getIdToken(true);
+
+      if (idToken == null || idToken.isEmpty) {
+        throw const AuthException(AuthErrorType.server);
+      }
+
       final response = await http
           .post(
             Uri.parse('$_baseUrl/auth/register'),
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
+              'Authorization': 'Bearer $idToken',
             },
             body: jsonEncode({
               'nombre': nombre.trim(),
               'apellido': apellido.trim(),
               'dni': dni.trim(),
               'fecha_nacimiento': fechaNacimiento,
-              'email': email.trim(),
-              'password': password,
             }),
           )
           .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 409) {
+        throw const AuthException(AuthErrorType.registrationFailed);
+      }
 
       if (response.statusCode == 422) {
         throw const AuthException(AuthErrorType.validation);
       }
 
-      if (response.statusCode == 400 || response.statusCode == 409) {
-        throw const AuthException(AuthErrorType.registrationFailed);
-      }
-
-      if (response.statusCode >= 500 ||
-          (response.statusCode != 200 && response.statusCode != 201)) {
+      if (response.statusCode != 201) {
         throw const AuthException(AuthErrorType.server);
       }
 
       final data = jsonDecode(response.body);
 
-      if (data is! Map<String, dynamic> ||
-          data['mensaje'] is! String ||
-          data['email'] is! String) {
+      if (data is! Map<String, dynamic> || data['mensaje'] is! String) {
         throw const AuthException(AuthErrorType.server);
       }
 
-      // El registro no inicia sesión ni guarda un token.
+      // El registro no debe dejar la sesión iniciada.
+      await _firebaseAuth.signOut();
+
       return data['mensaje'] as String;
     } on AuthException {
+      await _firebaseAuth.signOut();
       rethrow;
     } on SocketException {
+      await _firebaseAuth.signOut();
       throw const AuthException(AuthErrorType.connectivity);
     } on TimeoutException {
+      await _firebaseAuth.signOut();
       throw const AuthException(AuthErrorType.server);
     } on http.ClientException {
+      await _firebaseAuth.signOut();
       throw const AuthException(AuthErrorType.connectivity);
     } on FormatException {
+      await _firebaseAuth.signOut();
+      throw const AuthException(AuthErrorType.server);
+    } catch (_) {
+      await _firebaseAuth.signOut();
       throw const AuthException(AuthErrorType.server);
     }
   }
 
   Future<Map<String, dynamic>> getCurrentUser() async {
-    final token = await getToken();
+    final user = _firebaseAuth.currentUser;
 
-    if (token == null || token.isEmpty) {
+    if (user == null) {
       throw const AuthException(AuthErrorType.invalidCredentials);
     }
 
     try {
+      final token = await user.getIdToken();
+
+      if (token == null || token.isEmpty) {
+        throw const AuthException(AuthErrorType.sessionExpired);
+      }
+
       final response = await http
           .get(
             Uri.parse('$_baseUrl/auth/me'),
-            headers: {
-              'Accept': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
+            headers: _authenticatedHeaders(token),
           )
           .timeout(const Duration(seconds: 15));
 
@@ -366,18 +376,5 @@ class AuthService {
     } on http.ClientException {
       throw const AuthException(AuthErrorType.connectivity);
     }
-  }
-
-  Map<String, String> _authenticatedHeaders(String token) => {
-    'Accept': 'application/json',
-    'Authorization': 'Bearer $token',
-  };
-
-  Future<String?> getToken() {
-    return _storage.read(key: _tokenKey);
-  }
-
-  Future<void> logout() async {
-    await _storage.delete(key: _tokenKey);
   }
 }
