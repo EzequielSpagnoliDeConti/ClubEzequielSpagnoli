@@ -17,9 +17,15 @@ class Usuario(Base):
         nullable=False,
     )
 
-    password_hash: Mapped[str] = mapped_column(
+    firebase_uid: Mapped[str | None] = mapped_column(
+        String(128),
+        unique=True,
+        nullable=True,
+    )
+
+    password_hash: Mapped[str | None] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
     )
 
     nombre: Mapped[str] = mapped_column(
