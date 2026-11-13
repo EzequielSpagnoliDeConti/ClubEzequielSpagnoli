@@ -15,13 +15,13 @@ from app.auth.schemas import (
     LoginUsuario,
     RestablecerPassword,
     RegistroRespuesta,
-    RegistroUsuario,
     SolicitarRestablecimiento,
     TokenRespuesta,
     UsuarioActualRespuesta,
+    RegistroFirebase
 )
 from app.auth.security import crear_access_token
-from app.auth.dependencies import obtener_usuario_actual
+from app.auth.dependencies import obtener_usuario_actual, obtener_payload_firebase
 from app.core.config import correo_configurado
 from app.models.password_reset_token import PasswordResetToken
 from app.models.usuario import Usuario
@@ -39,55 +39,72 @@ def _a_utc(fecha: datetime) -> datetime:
     return fecha.astimezone(timezone.utc)
 
 
+
 @router.post(
     "/register",
     response_model=RegistroRespuesta,
     status_code=status.HTTP_201_CREATED,
 )
 def registrar_usuario(
-    datos: RegistroUsuario,
+    datos: RegistroFirebase,
+    payload: dict = Depends(obtener_payload_firebase),
     db: Session = Depends(get_db),
 ):
+    firebase_uid = payload.get("uid")
+    email = payload.get("email")
+
+    if not firebase_uid or not isinstance(email, str):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="El token de Firebase no contiene los datos necesarios.",
+        )
+
     usuario_existente = db.scalar(
         select(Usuario).where(
-            (Usuario.email == datos.email)
+            (Usuario.email == email)
             | (Usuario.dni == datos.dni)
+            | (Usuario.firebase_uid == firebase_uid)
         )
     )
 
     if usuario_existente:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="El correo electrónico o el DNI ya están registrados.",
+            detail="El correo electrónico, DNI o cuenta de Firebase ya están registrados.",
         )
 
+    ahora = datetime.now()
+
     nuevo_usuario = Usuario(
+        firebase_uid=firebase_uid,
         nombre=datos.nombre,
         apellido=datos.apellido,
         dni=datos.dni,
         fecha_nacimiento=datos.fecha_nacimiento,
-        email=str(datos.email),
-        password_hash=password_hash.hash(datos.password),
+        email=email,
+        password_hash=None,
         activo=True,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=ahora,
+        updated_at=ahora,
     )
 
     try:
         db.add(nuevo_usuario)
         db.commit()
+        db.refresh(nuevo_usuario)
+
     except IntegrityError:
-        #Por si 2 solicitudes llegan al mismo tiempo
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Se produjo un conflicto al intentar crear la cuenta.",
+            detail="Se produjo un conflicto al crear el perfil.",
         )
 
     return RegistroRespuesta(
-        mensaje="Cuenta creada correctamente. Ya podés iniciar sesión.",
+        mensaje="Cuenta creada correctamente.",
         email=nuevo_usuario.email,
     )
+
 
 
 @router.post(
