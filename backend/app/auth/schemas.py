@@ -54,3 +54,10 @@ class ActualizarPerfilUsuario(BaseModel):
     apellido: str = Field(min_length=1, max_length=100)
     dni: str = Field(min_length=1, max_length=20)
     fecha_nacimiento: date
+
+
+class RegistroFirebase(BaseModel):
+    nombre: str = Field(min_length=1, max_length=100)
+    apellido: str = Field(min_length=1, max_length=100)
+    dni: str = Field(min_length=1, max_length=20)
+    fecha_nacimiento: date

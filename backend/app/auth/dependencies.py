@@ -14,12 +14,11 @@ from app.models.usuario import Usuario
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def obtener_usuario_actual(
+def obtener_payload_firebase(
     credentials: HTTPAuthorizationCredentials | None = Depends(
         bearer_scheme
     ),
-    db: Session = Depends(get_db),
-) -> Usuario:
+) -> dict:
 
     if credentials is None:
         raise HTTPException(
@@ -29,9 +28,7 @@ def obtener_usuario_actual(
         )
 
     try:
-        payload = verificar_token_firebase(
-            credentials.credentials
-        )
+        return verificar_token_firebase(credentials.credentials)
 
     except (
         auth.InvalidIdTokenError,
@@ -51,6 +48,12 @@ def obtener_usuario_actual(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="No se pudo verificar la autenticación con Firebase",
         )
+
+
+def obtener_usuario_actual(
+    payload: dict = Depends(obtener_payload_firebase),
+    db: Session = Depends(get_db),
+) -> Usuario:
 
     firebase_uid = payload.get("uid")
 
