@@ -119,12 +119,13 @@ def iniciar_sesion(
     )
 
     if (
-        usuario is None
-        or not password_hash.verify(
-            datos.password,
-            usuario.password_hash,
-        )
-    ):
+    usuario is None
+    or usuario.password_hash is None
+    or not password_hash.verify(
+        datos.password,
+        usuario.password_hash,
+    )
+):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="No se pudo iniciar sesión",
