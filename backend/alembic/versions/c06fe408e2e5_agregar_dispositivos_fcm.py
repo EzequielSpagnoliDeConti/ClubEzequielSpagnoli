@@ -31,7 +31,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['usuario_id'], ['usuarios.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('token'),
-    sa.UniqueConstraint('usuario_id', 'token', name='uq_dispositivo_fcm_usuario_token')
     )
     op.create_index(op.f('ix_dispositivos_fcm_usuario_id'), 'dispositivos_fcm', ['usuario_id'], unique=False)
     # ### end Alembic commands ###
