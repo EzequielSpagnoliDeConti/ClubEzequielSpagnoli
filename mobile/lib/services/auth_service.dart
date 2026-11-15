@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../config/api_config.dart';
 
 enum AuthErrorType {
@@ -371,6 +371,72 @@ class AuthService {
       }
 
       await logout();
+    } on AuthException {
+      rethrow;
+    } on SocketException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on TimeoutException {
+      throw const AuthException(AuthErrorType.server);
+    } on http.ClientException {
+      throw const AuthException(AuthErrorType.connectivity);
+    }
+  }
+
+  Future<void> registerFcmDevice(String fcmToken) async {
+    final idToken = await getToken();
+
+    if (idToken == null || idToken.isEmpty) {
+      throw const AuthException(AuthErrorType.invalidCredentials);
+    }
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/notificaciones/dispositivos'),
+            headers: {
+              ..._authenticatedHeaders(idToken),
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({'token': fcmToken}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        throw const AuthException(AuthErrorType.server);
+      }
+    } on AuthException {
+      rethrow;
+    } on SocketException {
+      throw const AuthException(AuthErrorType.connectivity);
+    } on TimeoutException {
+      throw const AuthException(AuthErrorType.server);
+    } on http.ClientException {
+      throw const AuthException(AuthErrorType.connectivity);
+    }
+  }
+
+  Future<void> deactivateFcmDevice(String fcmToken) async {
+    final idToken = await getToken();
+
+    if (idToken == null || idToken.isEmpty) {
+      throw const AuthException(AuthErrorType.invalidCredentials);
+    }
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/notificaciones/dispositivos/desactivar'),
+            headers: {
+              ..._authenticatedHeaders(idToken),
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({'token': fcmToken}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        throw const AuthException(AuthErrorType.server);
+      }
     } on AuthException {
       rethrow;
     } on SocketException {

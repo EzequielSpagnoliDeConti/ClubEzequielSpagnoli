@@ -3,6 +3,8 @@ import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'password_reset_screen.dart';
 import 'register_screen.dart';
+import 'dart:async';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,6 +31,41 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _registrarDispositivoFCM() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+
+      // Solicita permiso para recibir notificaciones.
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      if (settings.authorizationStatus != AuthorizationStatus.authorized &&
+          settings.authorizationStatus != AuthorizationStatus.provisional) {
+        debugPrint('Permiso de notificaciones no concedido.');
+        return;
+      }
+
+      // Obtiene el token del dispositivo.
+      final token = await messaging.getToken();
+
+      if (token == null || token.isEmpty) {
+        debugPrint('No se pudo obtener el token FCM.');
+        return;
+      }
+
+      // Registra el dispositivo en nuestro backend.
+      await _authService.registerFcmDevice(token);
+
+      debugPrint('Dispositivo FCM registrado correctamente.');
+    } catch (e) {
+      // Un error de FCM no debe impedir el inicio de sesión.
+      debugPrint('Error al registrar dispositivo FCM: $e');
+    }
   }
 
   Future<void> _iniciarSesion() async {
@@ -70,6 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       );
+
+      unawaited(_registrarDispositivoFCM());
     } on AuthException catch (e) {
       if (!mounted) return;
 
