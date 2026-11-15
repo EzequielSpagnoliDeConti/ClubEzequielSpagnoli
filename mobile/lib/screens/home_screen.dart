@@ -5,6 +5,7 @@ import '../models/sports_sede.dart';
 import '../services/auth_service.dart';
 import '../services/reservations_service.dart';
 import '../services/sedes_service.dart';
+import '../services/fcm_service.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'reservations_screen.dart';
@@ -970,6 +971,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case _MiniProfileAction.reservations:
         setState(() => _selectedTab = 2);
       case _MiniProfileAction.logout:
+        await FcmService.instance.unregisterDevice();
         await _authService.logout();
         _redirectToLogin();
     }

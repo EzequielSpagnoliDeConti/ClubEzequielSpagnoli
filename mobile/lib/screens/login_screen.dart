@@ -3,6 +3,8 @@ import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'password_reset_screen.dart';
 import 'register_screen.dart';
+import 'dart:async';
+import '../services/fcm_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -70,6 +72,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       );
+
+      unawaited(FcmService.instance.registerDevice());
     } on AuthException catch (e) {
       if (!mounted) return;
 
