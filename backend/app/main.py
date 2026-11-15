@@ -5,6 +5,7 @@ from app.espacios_deportivos.router import router as espacios_deportivos_router
 from app.reservas.router import router as reservas_router
 from app.sedes.router import router as sedes_router
 from app.tarifas.router import router as tarifas_router
+from app.notificaciones.router import router as notificaciones_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -18,7 +19,7 @@ app.include_router(sedes_router)
 app.include_router(espacios_deportivos_router)
 app.include_router(reservas_router)
 app.include_router(tarifas_router)
-
+app.include_router(notificaciones_router)
 
 app.add_middleware(
     CORSMiddleware,
