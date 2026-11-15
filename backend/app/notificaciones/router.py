@@ -1,9 +1,9 @@
-
 from datetime import datetime
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+import logging
 
 from app.db.database import get_db
 from app.auth.dependencies import obtener_usuario_actual
@@ -12,7 +12,11 @@ from app.models.dispositivo_fcm import DispositivoFCM
 from app.notificaciones.schemas import (
     DispositivoFCMRequest,
     DispositivoFCMRespuesta,
+    NotificacionPruebaRequest,
+    NotificacionPruebaRespuesta,
 )
+from app.notificaciones.service import enviar_notificacion
+
 
 
 router = APIRouter(
@@ -20,6 +24,7 @@ router = APIRouter(
     tags=["Notificaciones"],
 )
 
+logger = logging.getLogger(__name__)
 
 @router.post(
     "/dispositivos",
@@ -84,4 +89,43 @@ def desactivar_dispositivo(
 
     return {
         "mensaje": "Dispositivo desactivado correctamente."
+    }
+
+@router.post(
+    "/probar",
+    response_model=NotificacionPruebaRespuesta,
+)
+def probar_notificacion(
+    datos: NotificacionPruebaRequest,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obtener_usuario_actual),
+):
+    dispositivos = db.scalars(
+        select(DispositivoFCM).where(
+            DispositivoFCM.usuario_id == usuario.id,
+            DispositivoFCM.activo.is_(True),
+        )
+    ).all()
+
+    enviados = 0
+    fallidos = 0
+
+    for dispositivo in dispositivos:
+        try:
+            enviar_notificacion(
+                dispositivo=dispositivo,
+                titulo=datos.titulo,
+                cuerpo=datos.cuerpo,
+            )
+            enviados += 1
+        except Exception:
+            logger.exception(
+                "Error al enviar notificación al dispositivo %s",
+                dispositivo.id,
+            )
+            fallidos += 1
+    return {
+        "mensaje": "Proceso de envío finalizado.",
+        "enviados": enviados,
+        "fallidos": fallidos,
     }
