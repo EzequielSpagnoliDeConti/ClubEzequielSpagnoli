@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
+import '../services/fcm_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({
@@ -91,7 +92,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isDeactivating = true);
 
     try {
+      await FcmService.instance.unregisterDevice();
       await _authService.deactivateCurrentUser();
+
       if (mounted) widget.onLoggedOut();
     } on AuthException catch (error) {
       if (mounted) {
