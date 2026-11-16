@@ -102,101 +102,113 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
               constraints: const BoxConstraints(maxWidth: 420),
               child: Form(
                 key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Icon(Icons.lock_reset, size: 64, color: _lime),
-                    const SizedBox(height: 24),
-                    Text(
-                      _emailSent
-                          ? 'Revisá tu correo'
-                          : 'Recuperá el acceso a tu cuenta',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _emailSent
-                          ? 'Si el correo corresponde a una cuenta registrada, '
-                                'vas a recibir un enlace para restablecer '
-                                'tu contraseña. Revisá también la carpeta '
-                                'de correo no deseado.'
-                          : 'Ingresá el email asociado a tu cuenta. '
-                                'Te enviaremos un enlace para crear '
-                                'una nueva contraseña.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        height: 1.5,
-                      ),
-                    ),
-                    if (!_emailSent) ...[
-                      const SizedBox(height: 28),
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        autofillHints: const [AutofillHints.email],
-                        style: const TextStyle(color: Colors.white),
-                        decoration: _decoration(
-                          'Email',
-                          icon: Icons.email_outlined,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Completá el email.';
-                          }
-
-                          if (!value.contains('@')) {
-                            return 'Ingresá un email válido.';
-                          }
-
-                          return null;
-                        },
-                      ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Icon(Icons.lock_reset, size: 64, color: _lime),
                       const SizedBox(height: 24),
-                      SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _submit,
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.black,
+                      Text(
+                        _emailSent
+                            ? 'Revisá tu correo'
+                            : 'Recuperá el acceso a tu cuenta',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _emailSent
+                            ? 'Si el correo corresponde a una cuenta registrada, '
+                                  'vas a recibir un enlace para restablecer '
+                                  'tu contraseña. Revisá también la carpeta '
+                                  'de correo no deseado.'
+                            : 'Ingresá el email asociado a tu cuenta. '
+                                  'Te enviaremos un enlace para crear '
+                                  'una nueva contraseña.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          height: 1.5,
+                        ),
+                      ),
+                      if (!_emailSent) ...[
+                        const SizedBox(height: 28),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          autofillHints: const [AutofillHints.email],
+                          style: const TextStyle(color: Colors.white),
+                          decoration: _decoration(
+                            'Email',
+                            icon: Icons.email_outlined,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Completá el email.';
+                            }
+
+                            if (!value.contains('@')) {
+                              return 'Ingresá un email válido.';
+                            }
+
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _submit,
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                : const Text(
+                                    'ENVIAR ENLACE',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                )
-                              : const Text(
-                                  'ENVIAR ENLACE',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
+                          ),
                         ),
-                      ),
-                    ] else ...[
-                      const SizedBox(height: 28),
-                      ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('VOLVER AL INICIO DE SESIÓN'),
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () {
-                                setState(() => _emailSent = false);
-                              },
-                        child: const Text(
-                          'Usar otro email',
-                          style: TextStyle(color: _lime),
+                      ] else ...[
+                        const SizedBox(height: 28),
+                        ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('VOLVER AL INICIO DE SESIÓN'),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () {
+                                  setState(() => _emailSent = false);
+                                },
+                          child: const Text(
+                            'Usar otro email',
+                            style: TextStyle(color: _lime),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

@@ -179,18 +179,17 @@ class _BookingScreenState extends State<BookingScreen> {
         bottom: false,
         child: Column(
           children: [
+            _buildHero(),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildHero(),
                     _buildCourtSelector(),
                     _buildDateSelector(),
                     _buildDurationSelector(),
                     _buildAvailability(),
-                    _buildPriceSummary(),
                   ],
                 ),
               ),
@@ -204,7 +203,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _buildHero() {
     return SizedBox(
-      height: 180,
+      height: 142,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -219,20 +218,44 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
           const CustomPaint(painter: _BookingPitchPainter()),
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+            padding: const EdgeInsets.fromLTRB(16, 4, 18, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextButton.icon(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back_ios, size: 13),
-                  label: const Text('Sedes'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white70,
-                    padding: EdgeInsets.zero,
-                  ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      color: Colors.white,
+                      tooltip: 'Volver a sedes',
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'NUEVA RESERVA',
+                      style: TextStyle(
+                        color: AppColors.yellow,
+                        fontSize: 10,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
                 ),
                 const Spacer(),
+                Text(
+                  widget.sede.name.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
                 Text(
                   '${_selectedCourt.sportLabel.toUpperCase()} · '
                   '${_selectedCourt.courtLabel.toUpperCase()}',
@@ -243,15 +266,6 @@ class _BookingScreenState extends State<BookingScreen> {
                     fontSize: 8,
                     letterSpacing: 2,
                     fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.sede.name.toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 23,
-                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
@@ -474,18 +488,26 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
               ),
             )
-          : Wrap(
-              spacing: 7,
-              runSpacing: 7,
-              children: _availableSlots.map(_slotButton).toList(),
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                const spacing = 8.0;
+                final slotWidth = (constraints.maxWidth - spacing) / 2;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: _availableSlots
+                      .map((slot) => _slotButton(slot, slotWidth))
+                      .toList(),
+                );
+              },
             ),
     );
   }
 
-  Widget _slotButton(AvailableSlot slot) {
+  Widget _slotButton(AvailableSlot slot, double width) {
     final selected = _selectedSlot?.startTime == slot.startTime;
     return SizedBox(
-      width: (MediaQuery.sizeOf(context).width - 55) / 2,
+      width: width,
       child: OutlinedButton(
         onPressed: () => setState(() => _selectedSlot = slot),
         style: OutlinedButton.styleFrom(
@@ -503,139 +525,128 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  Widget _buildPriceSummary() {
-    final rate = _hourlyRate;
-    final total = _totalPrice;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 18, 16, 0),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _selectedCourt.courtLabel,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              Text(
-                rate == null
-                    ? 'Tarifa sin configurar'
-                    : '${_formatMoney(rate)} × $_durationHours',
-                style: TextStyle(
-                  color: rate == null ? _muted : Colors.white70,
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${_selectedCourt.sportLabel} · ${_durationHours}h',
-            style: const TextStyle(color: _muted, fontSize: 9),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(height: 1, color: Colors.white12),
-          ),
-          const Text(
-            'TOTAL',
-            style: TextStyle(
-              color: _muted,
-              fontSize: 9,
-              letterSpacing: 1.5,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            total == null ? '—' : _formatMoney(total),
-            style: TextStyle(
-              color: total == null ? _muted : Colors.white,
-              fontSize: 23,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          if (rate == null) ...[
-            const SizedBox(height: 7),
-            const Text(
-              'No se puede confirmar hasta que se cargue la tarifa por hora.',
-              style: TextStyle(color: _danger, fontSize: 10),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildBookButton() {
     final enabled =
         !_isSubmitting &&
         !_isLoadingSlots &&
         _selectedSlot != null &&
         _hourlyRate != null;
-    final label = _isSubmitting
-        ? 'CONFIRMANDO RESERVA...'
-        : _hourlyRate == null
-        ? 'TARIFA PENDIENTE'
-        : _selectedSlot == null
-        ? 'SELECCIONÁ UN HORARIO'
-        : 'RESERVAR · ${_formatMoney(_totalPrice!)}';
+    final total = _totalPrice;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
       decoration: const BoxDecoration(
         color: AppColors.background,
-        border: Border(top: BorderSide(color: Colors.white10)),
+        border: Border(top: BorderSide(color: Colors.white12)),
       ),
-      child: SizedBox(
-        height: 48,
-        child: ElevatedButton(
-          onPressed: enabled ? _bookSelectedSlot : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _lime,
-            disabledBackgroundColor: _surface,
-            foregroundColor: Colors.black,
-            disabledForegroundColor: _muted,
-            textStyle: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.6,
+      child: Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'TOTAL',
+                  style: TextStyle(
+                    color: _muted,
+                    fontSize: 9,
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  total == null ? '—' : _formatMoney(total),
+                  style: TextStyle(
+                    color: total == null ? _muted : Colors.white,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  _hourlyRate == null
+                      ? 'Tarifa pendiente'
+                      : '${_formatMoney(_hourlyRate!)} × ${_durationHours}h',
+                  style: TextStyle(
+                    color: _hourlyRate == null ? _danger : _muted,
+                    fontSize: 9,
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Text(label),
-        ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 6,
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: enabled ? _bookSelectedSlot : null,
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.black,
+                        ),
+                      )
+                    : const Icon(Icons.arrow_forward_rounded, size: 18),
+                label: Text(
+                  _isSubmitting
+                      ? 'CONFIRMANDO'
+                      : enabled
+                      ? 'RESERVAR'
+                      : 'ELEGÍ HORARIO',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _lime,
+                  disabledBackgroundColor: _surface,
+                  foregroundColor: Colors.black,
+                  disabledForegroundColor: _muted,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _section({required String title, required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 17, 16, 0),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: const TextStyle(
-              color: _muted,
-              fontSize: 9,
-              letterSpacing: 1.8,
+              color: _lime,
+              fontSize: 10,
+              letterSpacing: 1.5,
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 9),
+          const SizedBox(height: 11),
           child,
         ],
       ),

@@ -379,177 +379,189 @@ class _RegisterScreenState extends State<RegisterScreen> {
               constraints: const BoxConstraints(maxWidth: 480),
               child: Form(
                 key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextButton.icon(
-                      onPressed: _isLoading
-                          ? null
-                          : () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                        padding: EdgeInsets.zero,
-                      ),
-                      icon: const Icon(Icons.chevron_left, size: 18),
-                      label: const Text(
-                        'Volver',
-                        style: TextStyle(fontSize: 12),
-                      ),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF101010).withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
                     ),
-                    const SizedBox(height: 10),
-                    _etiqueta('NUEVA CUENTA'),
-                    const SizedBox(height: 8),
-                    RichText(
-                      text: const TextSpan(
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          height: 1.1,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextButton.icon(
+                        onPressed: _isLoading
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                          padding: EdgeInsets.zero,
                         ),
-                        children: [
-                          TextSpan(text: 'CREAR '),
-                          TextSpan(
-                            text: 'CUENTA',
-                            style: TextStyle(color: _lime),
-                          ),
-                        ],
+                        icon: const Icon(Icons.chevron_left, size: 18),
+                        label: const Text(
+                          'Volver',
+                          style: TextStyle(fontSize: 12),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    if (_mensajeError != null) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: _rojo.withValues(alpha: 0.17),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _rojo.withValues(alpha: 0.6),
+                      const SizedBox(height: 10),
+                      _etiqueta('NUEVA CUENTA'),
+                      const SizedBox(height: 8),
+                      RichText(
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1.1,
                           ),
-                        ),
-                        child: Row(
                           children: [
-                            const Icon(
-                              Icons.error_outline,
-                              color: _rojo,
-                              size: 17,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _mensajeError!,
-                                style: const TextStyle(
-                                  color: _rojo,
-                                  fontSize: 12,
-                                ),
-                              ),
+                            TextSpan(text: 'CREAR '),
+                            TextSpan(
+                              text: 'CUENTA',
+                              style: TextStyle(color: _lime),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 14),
-                    ],
+                      const SizedBox(height: 20),
 
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _campo(
-                            etiqueta: 'NOMBRE',
-                            controller: _nombreController,
-                            hint: 'Juan',
-                            campo: 'nombre',
-                            validator: (v) => _validarTexto(v, 'nombre'),
+                      if (_mensajeError != null) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _rojo.withValues(alpha: 0.17),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _rojo.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: _rojo,
+                                size: 17,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _mensajeError!,
+                                  style: const TextStyle(
+                                    color: _rojo,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _campo(
-                            etiqueta: 'APELLIDO',
-                            controller: _apellidoController,
-                            hint: 'Pérez',
-                            campo: 'apellido',
-                            validator: (v) => _validarTexto(v, 'apellido'),
-                          ),
-                        ),
+                        const SizedBox(height: 14),
                       ],
-                    ),
-                    const SizedBox(height: 14),
 
-                    _campo(
-                      etiqueta: 'DNI',
-                      controller: _dniController,
-                      hint: '31.234.567',
-                      campo: 'dni',
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      validator: (v) {
-                        final error = _validarTexto(v, 'dni');
-                        if (error != null) return error;
-                        if (v!.length < 7 || v.length > 8) {
-                          return 'Ingresá un DNI válido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 14),
-
-                    _campo(
-                      etiqueta: 'FECHA DE NACIMIENTO',
-                      controller: _fechaController,
-                      hint: 'Seleccioná una fecha',
-                      campo: 'fecha',
-                      validator: (v) => _validarTexto(v, 'fecha'),
-                      onTap: _seleccionarFecha,
-                      suffixIcon: const Icon(
-                        Icons.calendar_today_outlined,
-                        color: Colors.white70,
-                        size: 18,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _campo(
+                              etiqueta: 'NOMBRE',
+                              controller: _nombreController,
+                              hint: 'Juan',
+                              campo: 'nombre',
+                              validator: (v) => _validarTexto(v, 'nombre'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _campo(
+                              etiqueta: 'APELLIDO',
+                              controller: _apellidoController,
+                              hint: 'Pérez',
+                              campo: 'apellido',
+                              validator: (v) => _validarTexto(v, 'apellido'),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 14),
 
-                    _campo(
-                      etiqueta: 'EMAIL',
-                      controller: _emailController,
-                      hint: 'juan@email.com',
-                      campo: 'email',
-                      keyboardType: TextInputType.emailAddress,
-                      validator: _validarEmail,
-                    ),
-                    const SizedBox(height: 14),
-
-                    _campo(
-                      etiqueta: 'CONTRASEÑA',
-                      controller: _passwordController,
-                      hint: 'Mínimo 8 caracteres',
-                      campo: 'password',
-                      validator: _validarPassword,
-                      obscureText: !_mostrarPassword,
-                      suffixIcon: IconButton(
-                        tooltip: _mostrarPassword
-                            ? 'Ocultar contraseña'
-                            : 'Mostrar contraseña',
-                        onPressed: () {
-                          setState(() {
-                            _mostrarPassword = !_mostrarPassword;
-                          });
+                      _campo(
+                        etiqueta: 'DNI',
+                        controller: _dniController,
+                        hint: '31.234.567',
+                        campo: 'dni',
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        validator: (v) {
+                          final error = _validarTexto(v, 'dni');
+                          if (error != null) return error;
+                          if (v!.length < 7 || v.length > 8) {
+                            return 'Ingresá un DNI válido';
+                          }
+                          return null;
                         },
-                        icon: Icon(
-                          _mostrarPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
+                      ),
+                      const SizedBox(height: 14),
+
+                      _campo(
+                        etiqueta: 'FECHA DE NACIMIENTO',
+                        controller: _fechaController,
+                        hint: 'Seleccioná una fecha',
+                        campo: 'fecha',
+                        validator: (v) => _validarTexto(v, 'fecha'),
+                        onTap: _seleccionarFecha,
+                        suffixIcon: const Icon(
+                          Icons.calendar_today_outlined,
                           color: Colors.white70,
                           size: 18,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
+                      const SizedBox(height: 14),
 
-                    _boton(texto: 'CREAR CUENTA', onPressed: _crearCuenta),
-                  ],
+                      _campo(
+                        etiqueta: 'EMAIL',
+                        controller: _emailController,
+                        hint: 'juan@email.com',
+                        campo: 'email',
+                        keyboardType: TextInputType.emailAddress,
+                        validator: _validarEmail,
+                      ),
+                      const SizedBox(height: 14),
+
+                      _campo(
+                        etiqueta: 'CONTRASEÑA',
+                        controller: _passwordController,
+                        hint: 'Mínimo 8 caracteres',
+                        campo: 'password',
+                        validator: _validarPassword,
+                        obscureText: !_mostrarPassword,
+                        suffixIcon: IconButton(
+                          tooltip: _mostrarPassword
+                              ? 'Ocultar contraseña'
+                              : 'Mostrar contraseña',
+                          onPressed: () {
+                            setState(() {
+                              _mostrarPassword = !_mostrarPassword;
+                            });
+                          },
+                          icon: Icon(
+                            _mostrarPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.white70,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+
+                      _boton(texto: 'CREAR CUENTA', onPressed: _crearCuenta),
+                    ],
+                  ),
                 ),
               ),
             ),

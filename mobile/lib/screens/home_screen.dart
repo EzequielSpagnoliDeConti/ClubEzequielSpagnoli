@@ -192,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHero() {
     return SizedBox(
-      height: 226,
+      height: 238,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -208,13 +208,23 @@ class _HomeScreenState extends State<HomeScreen> {
           const CustomPaint(painter: _PitchPainter()),
           Container(color: Colors.black.withValues(alpha: 0.28)),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 22),
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Spacer(),
+                    const Expanded(
+                      child: Text(
+                        'CLUB EZEQUIEL SPAGNOLI',
+                        style: TextStyle(
+                          color: _lime,
+                          fontSize: 9,
+                          letterSpacing: 1.8,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
                     _circleAction(
                       icon: Icons.notifications_none_rounded,
                       onTap: () =>
@@ -243,11 +253,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const Spacer(),
                 const Text(
-                  'BUENOS DÍAS,',
+                  'HOLA,',
                   style: TextStyle(
                     color: _muted,
                     fontSize: 10,
-                    letterSpacing: 3,
+                    letterSpacing: 2.5,
                   ),
                 ),
                 const SizedBox(height: 5),
@@ -256,30 +266,47 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
-                    fontSize: 17,
+                    fontSize: 24,
                     height: 1,
                   ),
                 ),
-                const SizedBox(height: 44),
-                const Text(
-                  'CLUB EZEQUIEL SPAGNOLI DE CONTI',
-                  style: TextStyle(
-                    color: _lime,
-                    fontSize: 9,
-                    letterSpacing: 3,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'ZONA DEPORTIVA',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 23,
-                    height: 1,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.6,
-                  ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'TU PRÓXIMO PARTIDO EMPIEZA ACÁ',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 9,
+                          letterSpacing: 1.1,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() => _selectedTab = 1);
+                        _loadSedeCatalog();
+                      },
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 15),
+                      label: const Text('SEDES'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _lime,
+                        side: const BorderSide(color: _lime),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 9,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1014,12 +1041,12 @@ class _HomeScreenState extends State<HomeScreen> {
       Icons.person_outline,
     ];
     return Container(
-      margin: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D0D0F),
-        borderRadius: BorderRadius.circular(19),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        color: _surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: List.generate(labels.length, (index) {
@@ -1033,37 +1060,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   _loadSedeCatalog();
                 }
               },
-              borderRadius: BorderRadius.circular(14),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
+              borderRadius: BorderRadius.circular(15),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: selected ? _lime : Colors.transparent,
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       icons[index],
-                      color: selected ? _lime : _muted,
+                      color: selected ? Colors.black : _muted,
                       size: 19,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       labels[index],
                       style: TextStyle(
-                        color: selected ? _lime : _muted,
+                        color: selected ? Colors.black : _muted,
                         fontSize: 8,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.7,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.6,
                       ),
                     ),
-                    if (selected)
-                      Container(
-                        margin: const EdgeInsets.only(top: 3),
-                        width: 17,
-                        height: 2,
-                        decoration: BoxDecoration(
-                          color: _lime,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
                   ],
                 ),
               ),
