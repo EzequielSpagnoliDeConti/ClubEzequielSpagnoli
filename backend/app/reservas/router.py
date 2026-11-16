@@ -244,6 +244,7 @@ def crear_mi_reserva(
         created_at=ahora,
         updated_at=ahora,
         cancelada_at=None,
+        recordatorio_enviado_at=None,
     )
     db.add(reserva)
     db.commit()
@@ -265,6 +266,7 @@ def crear_reserva(datos: ReservaDatos, db: Session = Depends(get_db)):
         created_at=ahora,
         updated_at=ahora,
         cancelada_at=None,
+        recordatorio_enviado_at=None,
     )
     db.add(reserva)
     db.commit()
@@ -302,8 +304,22 @@ def actualizar_reserva(
         )
 
     validar_referencias_y_disponibilidad(datos, db, reserva_id)
+
+    # Comprobar si cambió algún dato relevante para el recordatorio.
+    cambios_relevantes = (
+        reserva.usuario_id != datos.usuario_id
+        or reserva.espacio_deportivo_id != datos.espacio_deportivo_id
+        or reserva.fecha != datos.fecha
+        or reserva.hora_inicio != datos.hora_inicio
+        or reserva.hora_fin != datos.hora_fin
+    )
+
     for campo, valor in datos.model_dump().items():
         setattr(reserva, campo, valor)
+
+    if cambios_relevantes:
+        reserva.recordatorio_enviado_at = None
+
     reserva.updated_at = datetime.now()
 
     db.commit()
