@@ -30,6 +30,10 @@ class AuthService {
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
+  Future<String?> obtenerIdTokenParaPrueba() async {
+    return FirebaseAuth.instance.currentUser?.getIdToken();
+  }
+
   Future<String?> getToken() async {
     final user = _firebaseAuth.currentUser;
 
