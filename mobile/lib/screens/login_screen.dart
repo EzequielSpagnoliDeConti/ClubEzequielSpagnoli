@@ -61,7 +61,8 @@ class _LoginScreenState extends State<LoginScreen> {
         nombre,
         apellido,
       ].where((parte) => parte.isNotEmpty).join(' ');
-
+      final token = await AuthService().obtenerIdTokenParaPrueba();
+      debugPrint('Firebase ID Token: $token');
       if (!mounted) return;
 
       Navigator.of(context).pushReplacement(

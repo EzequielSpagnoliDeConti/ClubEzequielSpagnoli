@@ -68,3 +68,9 @@ class Reserva(Base):
         DateTime,
         nullable=True,
     )
+
+    recordatorio_enviado_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+        default=None,
+    )
