@@ -1,4 +1,7 @@
+
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth.router import router as auth_router
 from app.espacios_deportivos.router import router as espacios_deportivos_router
@@ -6,12 +9,26 @@ from app.reservas.router import router as reservas_router
 from app.sedes.router import router as sedes_router
 from app.tarifas.router import router as tarifas_router
 from app.notificaciones.router import router as notificaciones_router
-from fastapi.middleware.cors import CORSMiddleware
+from app.notificaciones.scheduler import (
+    iniciar_scheduler,
+    detener_scheduler,
+)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    iniciar_scheduler()
+    try:
+        yield
+    finally:
+        detener_scheduler()
+
 
 app = FastAPI(
     title="ClubEzequielSpagnoli API",
     description="API para la gestión de espacios deportivos",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.include_router(auth_router)
@@ -31,6 +48,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/health")
 def health():
