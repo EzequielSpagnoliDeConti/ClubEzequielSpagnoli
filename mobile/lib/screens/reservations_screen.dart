@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_colors.dart';
 import '../models/reservation.dart';
 import '../services/reservations_service.dart';
 
@@ -13,11 +14,11 @@ class ReservationsScreen extends StatefulWidget {
 }
 
 class _ReservationsScreenState extends State<ReservationsScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
-  static const Color _danger = Color(0xFFFF5B5B);
-  static const Color _success = Color(0xFF65D69A);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
+  static const Color _danger = AppColors.red;
+  static const Color _success = AppColors.yellow;
 
   final ReservationsService _reservationsService = ReservationsService();
   List<Reservation> _reservations = [];
@@ -391,70 +392,70 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   ),
                 ),
               ),
+              if (!_showHistory && reservation.isActive) ...[
+                const SizedBox(width: 4),
+                IconButton(
+                  onPressed: _cancellingReservationId == reservation.id
+                      ? null
+                      : () => _cancelReservation(reservation),
+                  tooltip: 'Cancelar reserva',
+                  visualDensity: VisualDensity.compact,
+                  style: IconButton.styleFrom(
+                    foregroundColor: _danger,
+                    backgroundColor: _danger.withValues(alpha: 0.1),
+                  ),
+                  icon: _cancellingReservationId == reservation.id
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: _danger,
+                          ),
+                        )
+                      : const Icon(Icons.close_rounded, size: 17),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                color: _muted,
-                size: 13,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                reservation.formattedDate,
-                style: const TextStyle(color: Colors.white70, fontSize: 11),
-              ),
-              const SizedBox(width: 14),
-              const Icon(Icons.access_time, color: _muted, size: 14),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  '${reservation.startTime} - ${reservation.endTime}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 11),
-                ),
-              ),
-            ],
-          ),
-          if (!_showHistory && reservation.isActive) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1, color: Colors.white12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(12),
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: OutlinedButton.icon(
-                onPressed: _cancellingReservationId == reservation.id
-                    ? null
-                    : () => _cancelReservation(reservation),
-                icon: _cancellingReservationId == reservation.id
-                    ? const SizedBox(
-                        width: 13,
-                        height: 13,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: _danger,
-                        ),
-                      )
-                    : const Icon(Icons.close, size: 14),
-                label: Text(
-                  _cancellingReservationId == reservation.id
-                      ? 'Cancelando'
-                      : 'Cancelar',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  color: _lime,
+                  size: 14,
                 ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _danger,
-                  side: BorderSide(color: _danger.withValues(alpha: 0.4)),
-                  visualDensity: VisualDensity.compact,
-                  textStyle: const TextStyle(
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    reservation.formattedDate,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.access_time, color: _lime, size: 14),
+                const SizedBox(width: 6),
+                Text(
+                  '${reservation.startTime} - ${reservation.endTime}',
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );

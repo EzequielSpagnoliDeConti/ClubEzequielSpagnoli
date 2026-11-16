@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'password_reset_screen.dart';
@@ -24,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-  static const Color _lime = Color(0xFFDFFF00);
+  static const Color _lime = AppColors.yellow;
 
   @override
   void dispose() {
@@ -173,197 +174,212 @@ class _LoginScreenState extends State<LoginScreen> {
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Form(
                     key: _formKey,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Icon(Icons.sports_tennis, size: 64, color: _lime),
-
-                        const SizedBox(height: 20),
-
-                        const Text(
-                          'CLUB',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
+                    child: Container(
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF101010).withValues(alpha: 0.88),
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Icon(
+                            Icons.sports_tennis,
+                            size: 64,
                             color: _lime,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 5,
                           ),
-                        ),
 
-                        const SizedBox(height: 4),
+                          const SizedBox(height: 20),
 
-                        const Text(
-                          'EZEQUIEL SPAGNOLI',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        const Text(
-                          'GESTIÓN DE ESPACIOS DEPORTIVOS',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-
-                        const SizedBox(height: 44),
-
-                        const Text(
-                          'Iniciar sesión',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          autofillHints: const [AutofillHints.email],
-                          style: const TextStyle(color: Colors.white),
-                          decoration: _decoracionCampo(
-                            label: 'Email',
-                            suffixIcon: const Icon(
-                              Icons.email_outlined,
-                              color: Colors.white70,
+                          const Text(
+                            'CLUB',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: _lime,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 5,
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Completá el email.';
-                            }
-                            return null;
-                          },
-                        ),
 
-                        const SizedBox(height: 18),
+                          const SizedBox(height: 4),
 
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          autofillHints: const [AutofillHints.password],
-                          style: const TextStyle(color: Colors.white),
-                          decoration: _decoracionCampo(
-                            label: 'Contraseña',
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
+                          const Text(
+                            'EZEQUIEL SPAGNOLI',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          const Text(
+                            'GESTIÓN DE ESPACIOS DEPORTIVOS',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+
+                          const SizedBox(height: 44),
+
+                          const Text(
+                            'Iniciar sesión',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            style: const TextStyle(color: Colors.white),
+                            decoration: _decoracionCampo(
+                              label: 'Email',
+                              suffixIcon: const Icon(
+                                Icons.email_outlined,
                                 color: Colors.white70,
                               ),
                             ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Completá el email.';
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Completá la contraseña.';
-                            }
-                            return null;
-                          },
-                        ),
 
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 18),
 
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: _isLoading
-                                ? null
-                                : () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => PasswordResetScreen(
-                                          initialEmail: _emailController.text
-                                              .trim(),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                            child: const Text(
-                              '¿Olvidaste tu contraseña?',
-                              style: TextStyle(color: _lime),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        SizedBox(
-                          height: 54,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _iniciarSesion,
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                : const Text(
-                                    'INICIAR SESIÓN',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 18),
-
-                        Center(
-                          child: TextButton(
-                            onPressed: _isLoading
-                                ? null
-                                : () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const RegisterScreen(),
-                                      ),
-                                    );
-                                  },
-                            child: const Text.rich(
-                              TextSpan(
-                                style: TextStyle(
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            autofillHints: const [AutofillHints.password],
+                            style: const TextStyle(color: Colors.white),
+                            decoration: _decoracionCampo(
+                              label: 'Contraseña',
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
                                   color: Colors.white70,
-                                  fontSize: 13,
                                 ),
-                                children: [
-                                  TextSpan(text: '¿No tenés cuenta? '),
-                                  TextSpan(
-                                    text: 'Crear cuenta',
-                                    style: TextStyle(
-                                      color: Color(0xFFD7FF00),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Completá la contraseña.';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _isLoading
+                                  ? null
+                                  : () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => PasswordResetScreen(
+                                            initialEmail: _emailController.text
+                                                .trim(),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                              child: const Text(
+                                '¿Olvidaste tu contraseña?',
+                                style: TextStyle(color: _lime),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+
+                          const SizedBox(height: 20),
+
+                          SizedBox(
+                            height: 54,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _iniciarSesion,
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.black,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'INICIAR SESIÓN',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          Center(
+                            child: TextButton(
+                              onPressed: _isLoading
+                                  ? null
+                                  : () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const RegisterScreen(),
+                                        ),
+                                      );
+                                    },
+                              child: const Text.rich(
+                                TextSpan(
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
+                                  children: [
+                                    TextSpan(text: '¿No tenés cuenta? '),
+                                    TextSpan(
+                                      text: 'Crear cuenta',
+                                      style: TextStyle(
+                                        color: AppColors.yellow,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

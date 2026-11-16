@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_colors.dart';
 import '../models/sports_sede.dart';
 import '../services/sedes_service.dart';
 import 'booking_screen.dart';
@@ -14,9 +15,9 @@ class SedesScreen extends StatefulWidget {
 }
 
 class _SedesScreenState extends State<SedesScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
 
   final SedesService _sedesService = SedesService();
   SedeCatalog? _catalog;
@@ -261,9 +262,9 @@ class _SedesScreenState extends State<SedesScreen> {
 class _SedeCard extends StatelessWidget {
   const _SedeCard({required this.sede, required this.onTap});
 
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
 
   final SportsSede sede;
   final VoidCallback onTap;
@@ -278,23 +279,23 @@ class _SedeCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(17),
         child: Container(
+          height: 148,
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(17),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
               Container(
-                height: 116,
+                width: 104,
+                height: 126,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
+                  borderRadius: BorderRadius.circular(13),
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF123047), Color(0xFF101511)],
+                    colors: [Color(0xFF301A1A), Color(0xFF101010)],
                   ),
                 ),
                 child: Stack(
@@ -302,17 +303,9 @@ class _SedeCard extends StatelessWidget {
                   children: [
                     const CustomPaint(painter: _SedePitchPainter()),
                     Positioned(
-                      left: 14,
+                      left: 12,
                       bottom: 12,
-                      child: Text(
-                        sede.name.toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
+                      child: Icon(Icons.sports, color: _lime, size: 24),
                     ),
                     Positioned(
                       right: 11,
@@ -339,60 +332,97 @@ class _SedeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(13, 11, 13, 13),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on_outlined,
-                          color: _muted,
-                          size: 14,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        sede.name.toUpperCase(),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          height: 1.05,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
                         ),
-                        const SizedBox(width: 5),
-                        Expanded(
-                          child: Text(
-                            sede.address,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: _muted, fontSize: 11),
+                      ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            color: _muted,
+                            size: 14,
                           ),
-                        ),
-                        const Icon(Icons.arrow_forward, color: _lime, size: 16),
-                      ],
-                    ),
-                    if (sports.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 5,
-                        children: sports
-                            .map(
-                              (sport) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF28321A),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  _sportLabel(sport),
-                                  style: const TextStyle(
-                                    color: _lime,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w700,
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              sede.address,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: _muted,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (sports.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 5,
+                          children: sports
+                              .map(
+                                (sport) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF302900),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    _sportLabel(sport),
+                                    style: const TextStyle(
+                                      color: _lime,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                            .toList(),
+                              )
+                              .toList(),
+                        ),
+                      ],
+                      const Row(
+                        children: [
+                          Text(
+                            'VER SEDE',
+                            style: TextStyle(
+                              color: _lime,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: _lime,
+                            size: 14,
+                          ),
+                        ],
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -429,9 +459,9 @@ class SedeDetailScreen extends StatefulWidget {
 }
 
 class _SedeDetailScreenState extends State<SedeDetailScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
 
   String? _selectedSport;
 
@@ -453,9 +483,9 @@ class _SedeDetailScreenState extends State<SedeDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF09090B),
+        backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
         title: const Text(
           'Sedes',
@@ -471,7 +501,7 @@ class _SedeDetailScreenState extends State<SedeDetailScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF123047), Color(0xFF090B08)],
+                colors: [Color(0xFF301A1A), AppColors.background],
               ),
             ),
             child: Stack(
@@ -635,7 +665,7 @@ class _SedeDetailScreenState extends State<SedeDetailScreen> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF25351A),
+                  color: const Color(0xFF302900),
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(_sportIcon(court.sport), color: _lime, size: 22),
@@ -661,49 +691,65 @@ class _SedeDetailScreenState extends State<SedeDetailScreen> {
                   ],
                 ),
               ),
-              Text(
-                price == null ? 'Tarifa pendiente' : '${_formatMoney(price)}/h',
-                style: TextStyle(
-                  color: price == null ? _muted : _lime,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 40,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                final sportCourts = widget.sede.courts
-                    .where((item) => item.sport == court.sport)
-                    .toList();
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => BookingScreen(
-                      sede: widget.sede,
-                      courts: sportCourts,
-                      initialCourtId: court.id,
-                      rates: widget.rates,
-                      onSessionExpired: widget.onSessionExpired,
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      price == null ? 'Tarifa pendiente' : _formatMoney(price),
+                      style: TextStyle(
+                        color: price == null ? _muted : Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.access_time, size: 15),
-              label: const Text('VER HORARIOS / RESERVAR'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _lime,
-                foregroundColor: Colors.black,
-                textStyle: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.4,
+                    const Text(
+                      'por hora',
+                      style: TextStyle(color: _muted, fontSize: 9),
+                    ),
+                  ],
                 ),
               ),
-            ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: () {
+                  final sportCourts = widget.sede.courts
+                      .where((item) => item.sport == court.sport)
+                      .toList();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => BookingScreen(
+                        sede: widget.sede,
+                        courts: sportCourts,
+                        initialCourtId: court.id,
+                        rates: widget.rates,
+                        onSessionExpired: widget.onSessionExpired,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.arrow_forward_rounded, size: 15),
+                label: const Text('HORARIOS'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _lime,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 13,
+                    vertical: 11,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

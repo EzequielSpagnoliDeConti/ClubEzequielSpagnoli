@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_colors.dart';
 import '../models/reservation.dart';
 import '../models/sports_sede.dart';
 import '../services/auth_service.dart';
@@ -26,16 +27,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
-  static const Color _danger = Color(0xFFFF5B5B);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
+  static const Color _danger = AppColors.red;
   static const List<Color> _sedeColors = [
-    Color(0xFF123047),
-    Color(0xFF25451A),
-    Color(0xFF234138),
-    Color(0xFF593018),
-    Color(0xFF34254B),
+    Color(0xFF3A1111),
+    Color(0xFF302900),
+    Color(0xFF252525),
+    Color(0xFF301A1A),
+    Color(0xFF1B1B1E),
   ];
 
   String? _selectedSport;
@@ -148,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -191,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHero() {
     return SizedBox(
-      height: 226,
+      height: 238,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -200,20 +201,30 @@ class _HomeScreenState extends State<HomeScreen> {
               gradient: RadialGradient(
                 center: Alignment(0.5, 0.65),
                 radius: 1.2,
-                colors: [Color(0xFF354614), Color(0xFF090B08)],
+                colors: [Color(0xFF332B00), AppColors.background],
               ),
             ),
           ),
           const CustomPaint(painter: _PitchPainter()),
           Container(color: Colors.black.withValues(alpha: 0.28)),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 22),
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Spacer(),
+                    const Expanded(
+                      child: Text(
+                        'CLUB EZEQUIEL SPAGNOLI',
+                        style: TextStyle(
+                          color: _lime,
+                          fontSize: 9,
+                          letterSpacing: 1.8,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
                     _circleAction(
                       icon: Icons.notifications_none_rounded,
                       onTap: () =>
@@ -242,11 +253,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const Spacer(),
                 const Text(
-                  'BUENOS DÍAS,',
+                  'HOLA,',
                   style: TextStyle(
                     color: _muted,
                     fontSize: 10,
-                    letterSpacing: 3,
+                    letterSpacing: 2.5,
                   ),
                 ),
                 const SizedBox(height: 5),
@@ -255,30 +266,47 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
-                    fontSize: 17,
+                    fontSize: 24,
                     height: 1,
                   ),
                 ),
-                const SizedBox(height: 44),
-                const Text(
-                  'CLUB EZEQUIEL SPAGNOLI DE CONTI',
-                  style: TextStyle(
-                    color: _lime,
-                    fontSize: 9,
-                    letterSpacing: 3,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'ZONA DEPORTIVA',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 23,
-                    height: 1,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.6,
-                  ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'TU PRÓXIMO PARTIDO EMPIEZA ACÁ',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 9,
+                          letterSpacing: 1.1,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() => _selectedTab = 1);
+                        _loadSedeCatalog();
+                      },
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 15),
+                      label: const Text('SEDES'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _lime,
+                        side: const BorderSide(color: _lime),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 9,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -419,7 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(9),
             gradient: const LinearGradient(
-              colors: [Color(0xFF1F6F76), Color(0xFF1B2926)],
+              colors: [Color(0xFF3A1111), AppColors.surface],
             ),
           ),
           child: Icon(
@@ -644,7 +672,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           end: Alignment.bottomRight,
                           colors: [
                             _sedeColor(sede.id),
-                            const Color(0xFF0B1011),
+                            const Color(0xFF101010),
                           ],
                         ),
                       ),
@@ -732,8 +760,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCategoryBadge(String category) {
     final color = category == 'Fútbol'
-        ? const Color(0xFF075C50)
-        : const Color(0xFF593018);
+        ? const Color(0xFF3A1111)
+        : const Color(0xFF302900);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
@@ -1013,12 +1041,12 @@ class _HomeScreenState extends State<HomeScreen> {
       Icons.person_outline,
     ];
     return Container(
-      margin: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D0D0F),
-        borderRadius: BorderRadius.circular(19),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        color: _surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: List.generate(labels.length, (index) {
@@ -1032,37 +1060,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   _loadSedeCatalog();
                 }
               },
-              borderRadius: BorderRadius.circular(14),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
+              borderRadius: BorderRadius.circular(15),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: selected ? _lime : Colors.transparent,
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       icons[index],
-                      color: selected ? _lime : _muted,
+                      color: selected ? Colors.black : _muted,
                       size: 19,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       labels[index],
                       style: TextStyle(
-                        color: selected ? _lime : _muted,
+                        color: selected ? Colors.black : _muted,
                         fontSize: 8,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.7,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.6,
                       ),
                     ),
-                    if (selected)
-                      Container(
-                        margin: const EdgeInsets.only(top: 3),
-                        width: 17,
-                        height: 2,
-                        decoration: BoxDecoration(
-                          color: _lime,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
                   ],
                 ),
               ),

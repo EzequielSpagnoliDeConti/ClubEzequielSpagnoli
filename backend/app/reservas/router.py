@@ -1,4 +1,5 @@
 from datetime import date, datetime, time, timedelta
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
@@ -21,6 +22,11 @@ from app.reservas.schemas import (
 
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
+ZONA_HORARIA = ZoneInfo("America/Argentina/Buenos_Aires")
+
+
+def _ahora_local() -> datetime:
+    return datetime.now(ZONA_HORARIA).replace(tzinfo=None)
 
 
 def validar_referencias_y_disponibilidad(
@@ -116,7 +122,8 @@ def consultar_disponibilidad(
     usuario: Usuario = Depends(obtener_usuario_actual),
     db: Session = Depends(get_db),
 ):
-    hoy = date.today()
+    ahora = _ahora_local()
+    hoy = ahora.date()
     if fecha < hoy:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -154,7 +161,6 @@ def consultar_disponibilidad(
         )
     ).all()
 
-    ahora = datetime.now()
     horarios: list[HorarioDisponibleRespuesta] = []
     inicio = apertura
     while inicio + duracion <= cierre:
@@ -186,6 +192,7 @@ def crear_mi_reserva(
     usuario: Usuario = Depends(obtener_usuario_actual),
     db: Session = Depends(get_db),
 ):
+    ahora_local = _ahora_local()
     espacio = db.get(EspacioDeportivo, datos.espacio_deportivo_id)
     if espacio is None:
         raise HTTPException(
@@ -205,7 +212,7 @@ def crear_mi_reserva(
     inicio = datetime.combine(datos.fecha, datos.hora_inicio)
     fin = datetime.combine(datos.fecha, datos.hora_fin)
     duracion = fin - inicio
-    if datos.fecha < date.today() or duracion not in (
+    if datos.fecha < ahora_local.date() or duracion not in (
         timedelta(hours=1),
         timedelta(hours=2),
     ):
@@ -231,7 +238,7 @@ def crear_mi_reserva(
         hora_fin=datos.hora_fin,
     )
     validar_referencias_y_disponibilidad(reserva_datos, db)
-    if datos.fecha == date.today() and inicio <= datetime.now():
+    if datos.fecha == ahora_local.date() and inicio <= ahora_local:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="El horario solicitado ya pasó.",

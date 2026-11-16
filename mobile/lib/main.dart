@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:mobile/firebase_options.dart';
+import 'package:mobile/config/app_colors.dart';
 import 'package:mobile/screens/login_screen.dart';
 
 Future<void> main() async {
@@ -108,7 +109,41 @@ class _ClubAppState extends State<ClubApp> {
       title: 'Club Ezequiel Spagnoli',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: _messengerKey,
-      theme: ThemeData(useMaterial3: true, fontFamily: 'Roboto'),
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Roboto',
+        colorScheme:
+            ColorScheme.fromSeed(
+              seedColor: AppColors.yellow,
+              brightness: Brightness.dark,
+            ).copyWith(
+              primary: AppColors.yellow,
+              secondary: AppColors.yellow,
+              error: AppColors.red,
+              surface: AppColors.surface,
+              onPrimary: Colors.black,
+              onSecondary: Colors.black,
+            ),
+        scaffoldBackgroundColor: AppColors.background,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.background,
+          foregroundColor: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.yellow,
+            foregroundColor: Colors.black,
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(foregroundColor: AppColors.yellow),
+        ),
+        dialogTheme: const DialogThemeData(backgroundColor: AppColors.surface),
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: AppColors.surface,
+          contentTextStyle: TextStyle(color: Colors.white),
+        ),
+      ),
       home: const LoginScreen(),
     );
   }

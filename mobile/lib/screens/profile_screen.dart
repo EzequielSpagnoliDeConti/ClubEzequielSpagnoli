@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_colors.dart';
 import '../services/auth_service.dart';
 import '../services/fcm_service.dart';
 
@@ -20,10 +21,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
-  static const Color _danger = Color(0xFFFF5B5B);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
+  static const Color _danger = AppColors.red;
 
   final AuthService _authService = AuthService();
   late Map<String, dynamic> _profile;
@@ -152,67 +153,96 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'MI PERFIL',
-            style: TextStyle(
-              color: _lime,
-              fontSize: 11,
-              letterSpacing: 2.5,
-              fontWeight: FontWeight.w900,
-            ),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'MI PERFIL',
+                  style: TextStyle(
+                    color: _lime,
+                    fontSize: 11,
+                    letterSpacing: 2.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: _isDeactivating ? null : _editProfile,
+                icon: const Icon(Icons.edit_outlined, size: 15),
+                label: const Text('EDITAR'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _lime,
+                  side: BorderSide(color: _lime.withValues(alpha: 0.6)),
+                  textStyle: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 18),
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: _surface,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             ),
-            child: Column(
+            child: Row(
               children: [
                 CircleAvatar(
-                  radius: 34,
+                  radius: 30,
                   backgroundColor: _lime,
                   child: Text(
                     _initials,
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  _fullName.isEmpty ? 'Usuario' : _fullName,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 7),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? _lime.withValues(alpha: 0.12)
-                        : _danger.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    isActive ? 'CUENTA ACTIVA' : 'CUENTA INACTIVA',
-                    style: TextStyle(
-                      color: isActive ? _lime : _danger,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1,
-                    ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _fullName.isEmpty ? 'Usuario' : _fullName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          height: 1.1,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? _lime.withValues(alpha: 0.12)
+                              : _danger.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          isActive ? 'CUENTA ACTIVA' : 'CUENTA INACTIVA',
+                          style: TextStyle(
+                            color: isActive ? _lime : _danger,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -255,45 +285,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           SizedBox(
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _isDeactivating ? null : _editProfile,
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('EDITAR PERFIL'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _lime,
-                foregroundColor: Colors.black,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: _isDeactivating ? null : _deactivateAccount,
+              icon: _isDeactivating
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _danger,
+                      ),
+                    )
+                  : const Icon(Icons.person_off_outlined, size: 17),
+              label: Text(
+                _isDeactivating ? 'PROCESANDO...' : 'DAR DE BAJA MI CUENTA',
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _danger,
+                side: BorderSide(color: _danger.withValues(alpha: 0.5)),
                 textStyle: const TextStyle(
+                  fontSize: 10,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.7,
                 ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: _isDeactivating ? null : _deactivateAccount,
-            icon: _isDeactivating
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: _danger,
-                    ),
-                  )
-                : const Icon(Icons.person_off_outlined),
-            label: Text(
-              _isDeactivating ? 'PROCESANDO...' : 'DAR DE BAJA MI CUENTA',
-            ),
-            style: TextButton.styleFrom(
-              foregroundColor: _danger,
-              textStyle: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.4,
               ),
             ),
           ),
@@ -355,8 +372,8 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _muted = Color(0xFF8A8A90);
+  static const Color _lime = AppColors.yellow;
+  static const Color _muted = AppColors.muted;
 
   final _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
@@ -511,13 +528,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF09090B),
+        backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
         title: const Text(
           'Editar perfil',
           style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
+          decoration: const BoxDecoration(
+            color: AppColors.background,
+            border: Border(top: BorderSide(color: Colors.white12)),
+          ),
+          child: SizedBox(
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: _isSaving ? null : _save,
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.black,
+                      ),
+                    )
+                  : const Icon(Icons.check_rounded),
+              label: Text(_isSaving ? 'GUARDANDO...' : 'GUARDAR CAMBIOS'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _lime,
+                foregroundColor: Colors.black,
+                textStyle: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.7,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
       body: SafeArea(
@@ -585,31 +637,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           Icons.lock_outline,
                           color: _muted,
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _isSaving ? null : _save,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _lime,
-                          foregroundColor: Colors.black,
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.7,
-                          ),
-                        ),
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.black,
-                                ),
-                              )
-                            : const Text('GUARDAR CAMBIOS'),
                       ),
                     ),
                   ],
