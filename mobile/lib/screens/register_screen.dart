@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../config/app_colors.dart';
 import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -28,8 +29,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _mensajeError;
   String? _campoError;
 
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _rojo = Color(0xFFFF4545);
+  static const Color _lime = AppColors.yellow;
+  static const Color _rojo = AppColors.red;
 
   @override
   void dispose() {

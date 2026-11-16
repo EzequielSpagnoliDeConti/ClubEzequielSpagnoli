@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_colors.dart';
 import '../services/auth_service.dart';
 import '../services/fcm_service.dart';
 
@@ -20,10 +21,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
-  static const Color _danger = Color(0xFFFF5B5B);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
+  static const Color _danger = AppColors.red;
 
   final AuthService _authService = AuthService();
   late Map<String, dynamic> _profile;
@@ -355,8 +356,8 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _muted = Color(0xFF8A8A90);
+  static const Color _lime = AppColors.yellow;
+  static const Color _muted = AppColors.muted;
 
   final _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
@@ -511,9 +512,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF09090B),
+        backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
         title: const Text(
           'Editar perfil',

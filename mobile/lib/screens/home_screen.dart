@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_colors.dart';
 import '../models/reservation.dart';
 import '../models/sports_sede.dart';
 import '../services/auth_service.dart';
@@ -26,16 +27,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
-  static const Color _danger = Color(0xFFFF5B5B);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
+  static const Color _danger = AppColors.red;
   static const List<Color> _sedeColors = [
-    Color(0xFF123047),
-    Color(0xFF25451A),
-    Color(0xFF234138),
-    Color(0xFF593018),
-    Color(0xFF34254B),
+    Color(0xFF3A1111),
+    Color(0xFF302900),
+    Color(0xFF252525),
+    Color(0xFF301A1A),
+    Color(0xFF1B1B1E),
   ];
 
   String? _selectedSport;
@@ -148,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -200,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
               gradient: RadialGradient(
                 center: Alignment(0.5, 0.65),
                 radius: 1.2,
-                colors: [Color(0xFF354614), Color(0xFF090B08)],
+                colors: [Color(0xFF332B00), AppColors.background],
               ),
             ),
           ),
@@ -419,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(9),
             gradient: const LinearGradient(
-              colors: [Color(0xFF1F6F76), Color(0xFF1B2926)],
+              colors: [Color(0xFF3A1111), AppColors.surface],
             ),
           ),
           child: Icon(
@@ -644,7 +645,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           end: Alignment.bottomRight,
                           colors: [
                             _sedeColor(sede.id),
-                            const Color(0xFF0B1011),
+                            const Color(0xFF101010),
                           ],
                         ),
                       ),
@@ -732,8 +733,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCategoryBadge(String category) {
     final color = category == 'Fútbol'
-        ? const Color(0xFF075C50)
-        : const Color(0xFF593018);
+        ? const Color(0xFF3A1111)
+        : const Color(0xFF302900);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(

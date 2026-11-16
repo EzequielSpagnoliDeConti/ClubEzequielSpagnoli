@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_colors.dart';
+
 import '../models/sports_sede.dart';
 import '../services/reservations_service.dart';
 
@@ -24,10 +26,10 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
-  static const Color _danger = Color(0xFFFF5B5B);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
+  static const Color _danger = AppColors.red;
 
   final ReservationsService _reservationsService = ReservationsService();
   late SportsCourt _selectedCourt;
@@ -172,7 +174,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -211,7 +213,7 @@ class _BookingScreenState extends State<BookingScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF123047), Color(0xFF090B08)],
+                colors: [Color(0xFF301A1A), AppColors.background],
               ),
             ),
           ),
@@ -594,7 +596,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
       decoration: const BoxDecoration(
-        color: Color(0xFF09090B),
+        color: AppColors.background,
         border: Border(top: BorderSide(color: Colors.white10)),
       ),
       child: SizedBox(

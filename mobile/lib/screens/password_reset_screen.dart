@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_colors.dart';
 import '../services/auth_service.dart';
 
 class PasswordResetScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   bool _isLoading = false;
   bool _emailSent = false;
 
-  static const Color _lime = Color(0xFFDFFF00);
+  static const Color _lime = AppColors.yellow;
 
   @override
   void initState() {
@@ -87,10 +88,10 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF171717),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Restablecer contraseña'),
-        backgroundColor: const Color(0xFF171717),
+        backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
       ),
       body: SafeArea(

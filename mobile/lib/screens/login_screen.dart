@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'password_reset_screen.dart';
@@ -24,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-  static const Color _lime = Color(0xFFDFFF00);
+  static const Color _lime = AppColors.yellow;
 
   @override
   void dispose() {
@@ -354,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   TextSpan(
                                     text: 'Crear cuenta',
                                     style: TextStyle(
-                                      color: Color(0xFFD7FF00),
+                                      color: AppColors.yellow,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

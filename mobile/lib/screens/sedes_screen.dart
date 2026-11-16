@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_colors.dart';
 import '../models/sports_sede.dart';
 import '../services/sedes_service.dart';
 import 'booking_screen.dart';
@@ -14,9 +15,9 @@ class SedesScreen extends StatefulWidget {
 }
 
 class _SedesScreenState extends State<SedesScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
 
   final SedesService _sedesService = SedesService();
   SedeCatalog? _catalog;
@@ -261,9 +262,9 @@ class _SedesScreenState extends State<SedesScreen> {
 class _SedeCard extends StatelessWidget {
   const _SedeCard({required this.sede, required this.onTap});
 
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
 
   final SportsSede sede;
   final VoidCallback onTap;
@@ -294,7 +295,7 @@ class _SedeCard extends StatelessWidget {
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF123047), Color(0xFF101511)],
+                    colors: [Color(0xFF301A1A), Color(0xFF101010)],
                   ),
                 ),
                 child: Stack(
@@ -376,7 +377,7 @@ class _SedeCard extends StatelessWidget {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF28321A),
+                                  color: const Color(0xFF302900),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
@@ -429,9 +430,9 @@ class SedeDetailScreen extends StatefulWidget {
 }
 
 class _SedeDetailScreenState extends State<SedeDetailScreen> {
-  static const Color _lime = Color(0xFFD7FF00);
-  static const Color _surface = Color(0xFF1B1B1E);
-  static const Color _muted = Color(0xFF8A8A90);
+  static const Color _lime = AppColors.yellow;
+  static const Color _surface = AppColors.surface;
+  static const Color _muted = AppColors.muted;
 
   String? _selectedSport;
 
@@ -453,9 +454,9 @@ class _SedeDetailScreenState extends State<SedeDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF09090B),
+        backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
         title: const Text(
           'Sedes',
@@ -471,7 +472,7 @@ class _SedeDetailScreenState extends State<SedeDetailScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF123047), Color(0xFF090B08)],
+                colors: [Color(0xFF301A1A), AppColors.background],
               ),
             ),
             child: Stack(
@@ -635,7 +636,7 @@ class _SedeDetailScreenState extends State<SedeDetailScreen> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF25351A),
+                  color: const Color(0xFF302900),
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(_sportIcon(court.sport), color: _lime, size: 22),
